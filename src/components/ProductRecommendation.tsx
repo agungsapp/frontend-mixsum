@@ -1,68 +1,104 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { BiPlus, BiSolidCart, BiSolidHeart, BiSolidStar } from "react-icons/bi";
-import { Swiper as SwiperType } from "swiper"; // Import tipe Swiper
+import { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import { Swiper, SwiperSlide } from "swiper/react";
+import SampleProduk from "../assets/images/produk/1.png";
+import { apiClient } from "../utils/api";
+
+// Definisikan tipe untuk respons API produk
+interface ProductItem {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    path: string;
+    price: string;
+    active: number;
+    product_type_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+// Fungsi untuk menghasilkan rating acak antara 4.3 dan 4.9
+const getRandomRating = () => {
+    return (Math.random() * (4.9 - 4.3) + 4.3).toFixed(1); // Random antara 4.3 - 4.9, 1 desimal
+};
+
+// Fungsi untuk menghasilkan like acak antara 5.5K dan 11.8K
+const getRandomLikes = () => {
+    const likes = Math.random() * (11.8 - 5.5) + 5.5; // Random antara 5.5 - 11.8
+    return `${likes.toFixed(1)}K`; // Format dengan "K" dan 1 desimal
+};
 
 const ProductRecommendation = () => {
     const [activeIndex, setActiveIndex] = useState(0);
-    const swiperRef = useRef<SwiperType | null>(null); // Tentukan tipe Swiper untuk swiperRef
+    const [products, setProducts] = useState<ProductItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const swiperRef = useRef<SwiperType | null>(null);
 
-    const loadImage = (path: string) => {
-        return new URL(path, import.meta.url).href;
-    };
-
-    const products = [
+    const dummyProducts = [
         {
             id: 1,
             name: "Dimsum Medium Pack",
             description:
                 "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/1.png"),
-            price: 29000,
-        },
-        {
-            id: 2,
-            name: "Dimsum Family Pack",
-            description:
-                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/2.png"),
-            price: 29000,
-        },
-        {
-            id: 3,
-            name: "Dimsum Special Combo",
-            description:
-                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/3.png"),
-            price: 29000,
-        },
-        {
-            id: 4,
-            name: "Dimsum Special Combo",
-            description:
-                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/3.png"),
-            price: 29000,
-        },
-        {
-            id: 5,
-            name: "Dimsum Special Combo",
-            description:
-                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/3.png"),
-            price: 29000,
-        },
-        {
-            id: 6,
-            name: "Dimsum Special Combo",
-            description:
-                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
-            image: loadImage("../assets/images/produk/3.png"),
-            price: 29000,
+            path: SampleProduk,
+            price: "29000",
+            slug: "dimsum-medium-pack",
+            active: 1,
+            product_type_id: 1,
+            created_at: "2025-04-08T07:16:18.000000Z",
+            updated_at: "2025-04-08T07:16:18.000000Z",
         },
     ];
+
+    useEffect(() => {
+        const fetchProductData = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.get<ProductItem[]>("/product");
+
+                console.log("API Response:", response.data);
+
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    const validProducts = response.data
+                        .filter((item) => item.active === 1 && item.path)
+                        .map((item) => ({
+                            ...item,
+                            path: item.path.startsWith("http")
+                                ? item.path
+                                : `${import.meta.env.VITE_API_BASE_URL?.replace(
+                                      /\/api\/?$/,
+                                      ""
+                                  )}/${item.path.replace(/^\//, "")}`,
+                        }));
+
+                    console.log("Processed products:", validProducts);
+
+                    if (validProducts.length > 0) {
+                        setProducts(validProducts);
+                    } else {
+                        console.log(
+                            "No valid products found, using dummy data"
+                        );
+                        setProducts(dummyProducts);
+                    }
+                } else {
+                    console.log("Empty API response, using dummy data");
+                    setProducts(dummyProducts);
+                }
+            } catch (error) {
+                console.error("Error fetching product data:", error);
+                setProducts(dummyProducts);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProductData();
+    }, []);
 
     const handleSlideChange = (swiper: SwiperType) => {
         setActiveIndex(swiper.realIndex);
@@ -80,6 +116,18 @@ const ProductRecommendation = () => {
             swiperRef.current.slideToLoop(index);
         }
     };
+
+    if (isLoading) {
+        return (
+            <section className="relative overflow-hidden bg-gray-100 py-16">
+                <div className="relative container mx-auto max-w-7xl px-0 md:px-6">
+                    <h2 className="mb-10 text-center text-4xl font-bold text-black md:text-5xl">
+                        Loading...
+                    </h2>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="relative overflow-hidden bg-gray-100 py-16">
@@ -117,7 +165,6 @@ const ProductRecommendation = () => {
                             slideShadows: false,
                         }}
                         spaceBetween={30}
-                        // modules={[EffectCoverflow]}
                         onSlideChange={handleSlideChange}
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper;
@@ -156,16 +203,23 @@ const ProductRecommendation = () => {
                                                 className="text-yellow-400"
                                             />
                                             <span className="text-base font-bold text-black">
-                                                4.5
+                                                {getRandomRating()}
                                             </span>
                                         </div>
                                         <img
                                             src={
-                                                product.image ||
+                                                product.path ||
                                                 "/placeholder.svg"
                                             }
                                             alt={product.name}
                                             className="-mt-20 hidden h-40 object-cover md:block"
+                                            onError={(e) => {
+                                                console.error(
+                                                    `Error loading image: ${product.path}`
+                                                );
+                                                e.currentTarget.src =
+                                                    SampleProduk;
+                                            }}
                                         />
                                         <div className="flex flex-col items-center gap-1">
                                             <BiSolidHeart
@@ -173,18 +227,25 @@ const ProductRecommendation = () => {
                                                 className="text-red-600"
                                             />
                                             <span className="text-base font-bold text-black">
-                                                4.5K
+                                                {getRandomLikes()}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="mb-3 flex justify-center">
                                         <img
                                             src={
-                                                product.image ||
+                                                product.path ||
                                                 "/placeholder.svg"
                                             }
                                             alt={product.name}
                                             className="block h-40 object-cover md:hidden"
+                                            onError={(e) => {
+                                                console.error(
+                                                    `Error loading image: ${product.path}`
+                                                );
+                                                e.currentTarget.src =
+                                                    SampleProduk;
+                                            }}
                                         />
                                     </div>
                                     <div className="flex flex-col gap-3">
@@ -197,7 +258,9 @@ const ProductRecommendation = () => {
                                         <div className="flex items-center justify-between">
                                             <p className="mt-2 text-lg font-semibold text-red-800">
                                                 Rp{" "}
-                                                {product.price.toLocaleString()}
+                                                {Number(
+                                                    product.price
+                                                ).toLocaleString()}
                                             </p>
                                             <button className="inline-flex w-fit rounded-lg bg-red-700 p-2">
                                                 <BiPlus
@@ -217,9 +280,7 @@ const ProductRecommendation = () => {
                     </Swiper>
                 </div>
                 <div className="relative z-20 flex items-center justify-center rounded-xl bg-amber-400 p-4">
-                    {/* Garis vertikal */}
                     <div className="mr-4 h-12 w-1 bg-red-700"></div>
-                    {/* Tombol */}
                     <a
                         href="#"
                         className="ms-auto rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800"
