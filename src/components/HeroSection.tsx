@@ -111,7 +111,7 @@ const HeroSection: React.FC = () => {
                     <img
                         src={slide}
                         alt={`Slide ${index + 1}`}
-                        className="h-full w-full object-contain md:object-cover"
+                        className="h-full w-full object-cover md:object-cover"
                         onError={(e) => {
                             console.error(`Error loading image: ${slide}`);
                             e.currentTarget.src = DefaultHero;

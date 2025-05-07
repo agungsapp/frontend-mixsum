@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import { BiPlus, BiSolidCart, BiSolidHeart, BiSolidStar } from "react-icons/bi";
 import { Swiper as SwiperType } from "swiper";
 import "swiper/css";
@@ -6,6 +6,10 @@ import "swiper/css/effect-coverflow";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SampleProduk from "../assets/images/produk/1.png";
 import { apiClient } from "../utils/api";
+import { CartContext } from "../context/CartContext";
+
+// import required modules
+import { Autoplay } from "swiper/modules";
 
 // Definisikan tipe untuk respons API produk
 interface ProductItem {
@@ -37,6 +41,17 @@ const ProductRecommendation = () => {
     const [products, setProducts] = useState<ProductItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const swiperRef = useRef<SwiperType | null>(null);
+
+    // Akses CartContext
+    const context = useContext(CartContext);
+
+    if (!context) {
+        throw new Error(
+            "ProductRecommendation must be used within a CartProvider"
+        );
+    }
+
+    const { addToCart } = context;
 
     const dummyProducts = [
         {
@@ -117,6 +132,17 @@ const ProductRecommendation = () => {
         }
     };
 
+    // Fungsi untuk menambahkan produk ke keranjang
+    const handleAddToCart = (product: ProductItem) => {
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: Number(product.price),
+            quantity: 1, // Quantity awal 1, akan ditangani di CartProvider
+        });
+        alert(`${product.name} telah ditambahkan ke keranjang!`);
+    };
+
     if (isLoading) {
         return (
             <section className="relative overflow-hidden bg-gray-100 py-16">
@@ -130,7 +156,7 @@ const ProductRecommendation = () => {
     }
 
     return (
-        <section className="relative overflow-hidden bg-gray-100 py-16">
+        <section className="relative overflow-hidden top-wave bg-gray-100 py-16">
             <div className="relative container mx-auto max-w-7xl px-0 md:px-6">
                 <h2 className="mb-10 text-center text-4xl font-bold text-black md:text-5xl">
                     <span className="me-1.5">Dimsum Paling</span>
@@ -157,6 +183,11 @@ const ProductRecommendation = () => {
                         effect="coverflow"
                         loop={true}
                         grabCursor={true}
+                        // autoplay={{
+                        //     delay: 2500,
+                        //     disableOnInteraction: false,
+                        // }}
+                        modules={[Autoplay]}
                         coverflowEffect={{
                             rotate: 0,
                             stretch: 0,
@@ -186,10 +217,10 @@ const ProductRecommendation = () => {
                         {products.map((product, index) => (
                             <SwiperSlide
                                 key={product.id}
-                                className="px-10 py-16"
+                                className=" px-5 md:px-8 py-16"
                             >
                                 <div
-                                    className={`rounded-lg p-6 shadow-2xl transition-transform duration-300 ${
+                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${
                                         index === activeIndex
                                             ? "bg-white"
                                             : "bg-transparent"
@@ -262,7 +293,13 @@ const ProductRecommendation = () => {
                                                     product.price
                                                 ).toLocaleString()}
                                             </p>
-                                            <button className="inline-flex w-fit rounded-lg bg-red-700 p-2">
+                                            <button
+                                                className="inline-flex w-fit rounded-lg bg-red-700 p-2 hover:bg-red-800 transition-colors"
+                                                onClick={() =>
+                                                    handleAddToCart(product)
+                                                }
+                                                aria-label={`Add ${product.name} to cart`}
+                                            >
                                                 <BiPlus
                                                     size={18}
                                                     className="text-white"
@@ -273,20 +310,22 @@ const ProductRecommendation = () => {
                                                 />
                                             </button>
                                         </div>
+                                        <div className="flex items-center justify-center">
+                                            <button className="bg-white text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl">
+                                                Chat admin
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </SwiperSlide>
                         ))}
                     </Swiper>
                 </div>
-                <div className="relative z-20 flex items-center justify-center rounded-xl bg-amber-400 p-4">
-                    <div className="mr-4 h-12 w-1 bg-red-700"></div>
-                    <a
-                        href="#"
-                        className="ms-auto rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800"
-                    >
+
+                <div className="w-full pb-10">
+                    <button className="mx-auto block rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800">
                         Lihat Semua Menu
-                    </a>
+                    </button>
                 </div>
             </div>
         </section>

@@ -1,8 +1,10 @@
+import MenuFull from "../components/MenuFull";
+
 function MenuPage() {
     return (
         <div>
-            <h1>Halaman Menu</h1>
             {/* Tambahkan daftar menu di sini */}
+            <MenuFull />
         </div>
     );
 }

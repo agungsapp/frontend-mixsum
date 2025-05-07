@@ -1,0 +1,16 @@
+.top-wave {
+    padding: 2.5rem 0; /* py-10 */
+    background-color: #f3f4f6; /* bg-gray-100 */
+    background-image: url("./assets/images/part/top.svg");
+    background-size: 100% auto;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+}
+.bot-wave {
+    padding: 2.5rem 0; /* py-10 */
+    background-color: #f3f4f6; /* bg-gray-100 */
+    background-image: url("./assets/images/part/bot.svg");
+    background-size: 100% auto;
+    background-position: top center;
+    background-repeat: no-repeat;
+}

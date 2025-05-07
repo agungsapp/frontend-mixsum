@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import { CartProvider } from "./context/CartContext";
 import MenuPage from "./pages/MenuPage";
+import FloatingCart from "./components/FloatingCart";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                         {/* Tambahkan route lain di sini jika diperlukan */}
                     </Routes>
                     <Footer />
+                    <FloatingCart />
                 </div>
             </Router>
         </CartProvider>

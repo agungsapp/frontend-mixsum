@@ -5,6 +5,7 @@ interface CartItem {
     id: number;
     name: string;
     price: number;
+    quantity: number; // Tambahkan properti quantity
 }
 
 // Definisikan tipe data untuk value yang akan disediakan oleh context
@@ -26,7 +27,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // Fungsi untuk menambahkan item ke keranjang
     const addToCart = (item: CartItem) => {
-        setCart((prevCart) => [...prevCart, item]);
+        setCart((prevCart) => {
+            // Cari apakah item dengan id yang sama sudah ada
+            const existingItemIndex = prevCart.findIndex(
+                (cartItem) => cartItem.id === item.id
+            );
+
+            if (existingItemIndex !== -1) {
+                // Jika item sudah ada, tingkatkan quantity
+                const updatedCart = [...prevCart];
+                updatedCart[existingItemIndex] = {
+                    ...updatedCart[existingItemIndex],
+                    quantity: updatedCart[existingItemIndex].quantity + 1,
+                };
+                return updatedCart;
+            } else {
+                // Jika item belum ada, tambahkan sebagai item baru dengan quantity 1
+                return [...prevCart, { ...item, quantity: 1 }];
+            }
+        });
     };
 
     // Fungsi untuk menghapus item dari keranjang

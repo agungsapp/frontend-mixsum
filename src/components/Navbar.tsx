@@ -1,23 +1,13 @@
-import React, { useContext } from "react";
-import { CartContext } from "../context/CartContext"; // Import CartContext
+import { useState } from "react";
 import LogoMixsum from "../assets/images/logo/mixsum-landscape.png";
-import { HiMenuAlt3, HiX, HiShoppingCart } from "react-icons/hi"; // Tambahkan ikon keranjang
+import { HiMenuAlt3, HiX } from "react-icons/hi";
 
 const Navbar = () => {
-    const [isOpen, setIsOpen] = React.useState(false); // State untuk mengontrol menu mobile
+    const [isOpen, setIsOpen] = useState(false); // State untuk menu mobile
 
     const toggleMenu = () => {
-        setIsOpen(!isOpen); // Toggle menu mobile
+        setIsOpen(!isOpen);
     };
-
-    // Ambil nilai dari CartContext
-    const context = useContext(CartContext);
-
-    if (!context) {
-        throw new Error("CartContext must be used within a CartProvider");
-    }
-
-    const { cart } = context;
 
     return (
         <div className="bg-white py-3 px-1">
@@ -41,7 +31,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Menu untuk Desktop */}
-                <ul className="hidden md:flex flex-row gap-4 text-white font-bold">
+                <ul className="hidden md:flex flex-row gap-4 text-white font-bold items-center">
                     <li>
                         <a
                             href="#"
@@ -81,17 +71,6 @@ const Navbar = () => {
                         >
                             Contact
                         </a>
-                    </li>
-                    {/* Tombol Keranjang */}
-                    <li className="relative">
-                        <button className="flex items-center gap-1 hover:text-gray-200 transition-colors">
-                            <HiShoppingCart size={24} />
-                            {cart.length > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                                    {cart.length}
-                                </span>
-                            )}
-                        </button>
                     </li>
                 </ul>
 
@@ -155,21 +134,10 @@ const Navbar = () => {
                                 Contact
                             </a>
                         </li>
-                        {/* Tombol Keranjang di Mobile */}
-                        <li className="relative">
-                            <button className="flex items-center gap-1 hover:text-gray-200 transition-colors">
-                                <HiShoppingCart size={24} />
-                                {cart.length > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                                        {cart.length}
-                                    </span>
-                                )}
-                            </button>
-                        </li>
                     </ul>
                 </div>
 
-                {/* Overlay (untuk menutup menu saat klik di luar) */}
+                {/* Overlay untuk menu mobile */}
                 {isOpen && (
                     <div
                         className="fixed inset-0 bg-black opacity-50 z-40 md:hidden"

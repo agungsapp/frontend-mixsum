@@ -5,7 +5,7 @@ import Produk1 from "../assets/images/produk/1.png";
 const Promo = () => {
     const endTime = new Date().getTime() + 1000 * 60 * 60 * 24;
     return (
-        <div className="bg-[#FFFAE9] py-12 md:py-16">
+        <div className="bg-amber-200 py-12 md:py-16">
             <div className="container mx-auto flex max-w-7xl flex-col items-center justify-between gap-12 px-6 md:flex-row md:gap-36">
                 {/* Bagian Kiri: Judul, Teks, Countdown */}
                 <div className="flex w-full flex-col gap-5 md:w-1/2">
@@ -17,7 +17,7 @@ const Promo = () => {
                         Dimsum favoritmu dengan diskon spesial dan bonus
                         menarik.
                     </p>
-                    <p className="text-center text-lg font-semibold text-red-950 md:text-xl">
+                    <p className="text-center animate-pulse transition-all duration-75 text-lg font-semibold text-red-950 md:text-xl">
                         🔥 Promo ini hanya berlaku untuk waktu terbatas! 🔥
                     </p>
                     <Countdown endTime={endTime} />
