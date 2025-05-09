@@ -3,6 +3,7 @@ import { BiPlus, BiSolidCart, BiSearch } from "react-icons/bi";
 import Produk1 from "../assets/images/produk/1.png";
 import { apiClient } from "../utils/api";
 import { CartContext } from "../context/CartContext";
+import Swal from "sweetalert2";
 
 // Definisikan tipe untuk respons API produk
 interface ProductItem {
@@ -18,12 +19,37 @@ interface ProductItem {
     updated_at: string;
 }
 
+// Komponen skeleton untuk kartu produk
+const ProductCardSkeleton = () => (
+    <div className="rounded-3xl bg-white p-2">
+        <div className="relative z-50 max-w-96 rounded-3xl overflow-hidden border-2 border-dashed border-red-950 bg-white p-5">
+            <div className="mx-auto w-32 h-32 bg-gray-300 rounded animate-pulse">
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+            </div>
+            <div className="mt-5 flex flex-col gap-5">
+                <div className="h-6 w-3/4 mx-auto bg-gray-300 rounded animate-pulse"></div>
+                <div className="h-5 w-full bg-gray-300 rounded animate-pulse"></div>
+                <div className="flex justify-between">
+                    <div className="h-5 w-1/3 bg-gray-300 rounded animate-pulse"></div>
+                    <div className="h-8 w-8 bg-gray-300 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="flex justify-center">
+                    <div className="h-7 w-24 bg-gray-300 rounded-2xl animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 const MenuFull = () => {
     const [products, setProducts] = useState<ProductItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<"all" | "food" | "drink">("all");
     const [sortMode, setSortMode] = useState<"lowest" | "highest" | null>(null);
+    const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>(
+        {}
+    );
 
     // Akses CartContext
     const context = useContext(CartContext);
@@ -32,7 +58,7 @@ const MenuFull = () => {
         throw new Error("MenuFull must be used within a CartProvider");
     }
 
-    const { addToCart } = context;
+    const { addToCart, selectedBranch, setShowBranchModal } = context;
 
     // Data dummy sebagai fallback
     const dummyProducts = [
@@ -121,6 +147,7 @@ const MenuFull = () => {
         };
 
         fetchProductData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fungsi untuk menambahkan produk ke keranjang
@@ -131,14 +158,46 @@ const MenuFull = () => {
             price: Number(product.price),
             quantity: 1,
         });
-        alert(`${product.name} telah ditambahkan ke keranjang!`);
+        Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: `${product.name} telah ditambahkan ke keranjang!`,
+            timer: 2000,
+            showConfirmButton: false,
+        });
     };
 
     // Fungsi untuk tombol Chat Admin
-    const handleChatAdmin = (productName: string) => {
-        const phoneNumber = "6285839023590"; // Nomor WA dengan kode negara
+    const handleChatAdmin = async (productName: string) => {
+        if (!selectedBranch) {
+            setShowBranchModal(true);
+            await Swal.fire({
+                icon: "warning",
+                title: "Pilih Cabang",
+                text: "Silakan pilih cabang terlebih dahulu.",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#dc2626",
+            });
+            return;
+        }
+
+        const whatsappContact = selectedBranch.branch_contact.find(
+            (contact) => contact.type === "whatsapp"
+        );
+        if (!whatsappContact) {
+            await Swal.fire({
+                icon: "error",
+                title: "Kesalahan",
+                text: "Nomor WhatsApp untuk cabang ini tidak tersedia.",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#dc2626",
+            });
+            return;
+        }
+
+        const phoneNumber = whatsappContact.contact;
         const message = encodeURIComponent(
-            `Hallo, Admin, saya mau pesan ${productName}`
+            `Hallo, Admin, saya mau pesan ${productName} dari cabang ${selectedBranch.name}`
         );
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
         window.open(whatsappUrl, "_blank");
@@ -185,8 +244,30 @@ const MenuFull = () => {
             <section className="relative overflow-hidden py-16">
                 <div className="relative container mx-auto max-w-7xl px-6">
                     <h2 className="mb-10 text-center text-4xl font-bold text-black md:text-5xl">
-                        Loading...
+                        <span className="me-1.5">Pilihan Dimsum</span>
+                        <span className="relative inline-block text-red-700">
+                            Favorit !
+                            <svg
+                                className="absolute left-0 w-full"
+                                style={{ bottom: "-20px", height: "15px" }}
+                                preserveAspectRatio="none"
+                                viewBox="0 0 100 15"
+                            >
+                                <path
+                                    d="M0,1 Q50,13 100,1"
+                                    stroke="#EF4444"
+                                    strokeWidth="4"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                        </span>
                     </h2>
+                    <div className="grid gap-10 py-10 md:grid-cols-3 md:gap-20">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                            <ProductCardSkeleton key={index} />
+                        ))}
+                    </div>
                 </div>
             </section>
         );
@@ -227,9 +308,7 @@ const MenuFull = () => {
                     </p>
                 </div>
 
-                {/* Filter Section: Searchbar, Tabs, and Sort */}
                 <div className="mt-16 flex flex-col items-center gap-6 md:flex-row md:justify-between">
-                    {/* Searchbar */}
                     <div className="relative w-full max-w-md">
                         <input
                             type="text"
@@ -244,7 +323,6 @@ const MenuFull = () => {
                         />
                     </div>
 
-                    {/* Tabs */}
                     <div className="flex gap-2">
                         <button
                             className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
@@ -278,14 +356,16 @@ const MenuFull = () => {
                         </button>
                     </div>
 
-                    {/* Sort Dropdown */}
                     <div className="relative">
                         <select
                             className="appearance-none pl-4 pr-10 py-3 border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-gray-700 font-semibold cursor-pointer transition-all duration-300"
                             value={sortMode || ""}
                             onChange={(e) =>
                                 setSortMode(
-                                    e.target.value as "lowest" | "highest" | ""
+                                    (e.target.value as
+                                        | "lowest"
+                                        | "highest"
+                                        | "") || null
                                 )
                             }
                         >
@@ -312,7 +392,6 @@ const MenuFull = () => {
                     </div>
                 </div>
 
-                {/* Product Section */}
                 <div className="grid gap-10 py-10 md:grid-cols-3 md:gap-20">
                     {filteredAndSortedProducts().length === 0 ? (
                         <p className="text-center text-gray-700 col-span-3">
@@ -325,17 +404,38 @@ const MenuFull = () => {
                                 className="rounded-3xl bg-white p-2"
                             >
                                 <div className="relative z-50 max-w-96 rounded-3xl border-2 border-dashed border-red-950 bg-white p-5">
-                                    <img
-                                        src={product.path || Produk1}
-                                        className="mx-auto w-32"
-                                        alt={product.name}
-                                        onError={(e) => {
-                                            console.error(
-                                                `Error loading image: ${product.path}`
-                                            );
-                                            e.currentTarget.src = Produk1;
-                                        }}
-                                    />
+                                    <div className="relative mx-auto w-32 h-32">
+                                        {!imageLoaded[product.id] && (
+                                            <div className="absolute inset-0 bg-gray-300 rounded animate-pulse">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+                                            </div>
+                                        )}
+                                        <img
+                                            src={product.path || Produk1}
+                                            alt={product.name}
+                                            className={`w-full mb-2 object-cover ${
+                                                imageLoaded[product.id]
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                            }`}
+                                            onLoad={() =>
+                                                setImageLoaded((prev) => ({
+                                                    ...prev,
+                                                    [product.id]: true,
+                                                }))
+                                            }
+                                            onError={(e) => {
+                                                console.error(
+                                                    `Error loading image: ${product.path}`
+                                                );
+                                                e.currentTarget.src = Produk1;
+                                                setImageLoaded((prev) => ({
+                                                    ...prev,
+                                                    [product.id]: true,
+                                                }));
+                                            }}
+                                        />
+                                    </div>
                                     <div className="mt-5 flex flex-col gap-5">
                                         <h3 className="text-2xl font-bold text-black">
                                             {product.name}
@@ -367,7 +467,7 @@ const MenuFull = () => {
                                                 />
                                             </button>
                                         </div>
-                                        <div className="flex items-center justify-center">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button
                                                 className="bg-white text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl"
                                                 onClick={() =>

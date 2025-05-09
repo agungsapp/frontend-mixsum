@@ -5,13 +5,31 @@ import Select, { StylesConfig, SingleValue } from "react-select";
 import "leaflet/dist/leaflet.css"; // Impor CSS Leaflet untuk styling marker dan popup
 import { SiGojek, SiShopee, SiGrab } from "react-icons/si";
 import { FaWhatsapp, FaInstagram } from "react-icons/fa";
+import { apiClient } from "../utils/api";
 
-// Definisi tipe untuk data cabang
+// Definisi tipe untuk kontak cabang
+interface BranchContact {
+    id: number;
+    branch_id: number;
+    type: string;
+    contact: string;
+}
+
+// Definisi tipe untuk data cabang dari API
+interface ApiBranch {
+    id: number;
+    name: string;
+    lat: number;
+    long: number; // Menggunakan lng untuk konsistensi dengan kode asli
+    branch_contact: BranchContact[];
+}
+
+// Definisi tipe untuk data cabang yang digunakan di komponen
 interface Branch {
     name: string;
     address: string;
     lat: number;
-    lng: number;
+    long: number;
     whatsapp: string;
     instagram: string;
     gofood: string;
@@ -25,40 +43,31 @@ interface SelectOption {
     label: string;
 }
 
-// Data dummy cabang dengan koordinat dari tautan Google Maps
-const branches: Branch[] = [
+// Data dummy cabang sebagai fallback
+const dummyBranches: Branch[] = [
     {
-        name: "Cabang Palembang 1",
-        address: "Jl. Sudirman No.123, Palembang",
+        name: "kedaton",
+        address: "Jl. Sudirman No.123, Bandar Lampung",
         lat: -5.3882406,
-        lng: 105.2525734, // Mix Kitchen
-        whatsapp: "https://wa.me/6281234567890",
-        instagram: "https://instagram.com/mixsum_palembang1",
-        gofood: "https://gofood.link/a/example1",
-        grabfood: "https://grab.link/a/example1",
-        shopeefood: "https://shopee.co.id/mixsum_palembang1",
+        long: 105.2525734,
+        whatsapp: "https://wa.me/6287868767807",
+        instagram: "https://instagram.com/mixsum_kedaton",
+        gofood: "https://gofood.link/a/yMa5Qvs",
+        grabfood:
+            "https://r.grab.com/g/6-20250315_153422_6F865A3E748B4BA096BEEDB5BE107830_MEXMPS-6-CZC2AVCDCYBDL2",
+        shopeefood: "https://shopee.co.id/mixsum_kedaton",
     },
     {
-        name: "Cabang Palembang 2",
-        address: "Jl. Veteran No.456, Palembang",
+        name: "korpri",
+        address: "Jl. Veteran No.456, Bandar Lampung",
         lat: -5.3776707,
-        lng: 105.2938625, // MIXSUM DIMSUM KORPRI
-        whatsapp: "https://wa.me/6281234567891",
-        instagram: "https://instagram.com/mixsum_palembang2",
-        gofood: "https://gofood.link/a/example2",
-        grabfood: "https://grab.link/a/example2",
-        shopeefood: "https://shopee.co.id/mixsum_palembang2",
-    },
-    {
-        name: "Cabang Palembang 3",
-        address: "Jl. Merdeka No.789, Palembang",
-        lat: -5.3999951,
-        lng: 105.2107104, // MIXSUM DIMSUM KEMILING
-        whatsapp: "https://wa.me/6281234567892",
-        instagram: "https://instagram.com/mixsum_palembang3",
-        gofood: "https://gofood.link/a/example3",
-        grabfood: "https://grab.link/a/example3",
-        shopeefood: "https://shopee.co.id/mixsum_palembang3",
+        long: 105.2938625,
+        whatsapp: "https://wa.me/6289522282600",
+        instagram: "https://instagram.com/mixsum_korpri",
+        gofood: "https://gofood.link/a/GETUzLd",
+        grabfood:
+            "https://r.grab.com/g/6-20250315_153500_6F865A3E748B4BA096BEEDB5BE107830_MEXMPS-6-C341J233EYNENX",
+        shopeefood: "https://shopee.co.id/mixsum_korpri",
     },
 ];
 
@@ -83,12 +92,12 @@ const MapController: React.FC<{
 
     React.useEffect(() => {
         if (selectedBranch) {
-            map.setView([selectedBranch.lat, selectedBranch.lng], 15); // Pindah ke cabang dengan zoom 15
+            map.setView([selectedBranch.lat, selectedBranch.long], 15); // Pindah ke cabang dengan zoom 15
             const marker = markers.current.find(
                 (m) =>
                     m &&
                     m.getLatLng().lat === selectedBranch.lat &&
-                    m.getLatLng().lng === selectedBranch.lng
+                    m.getLatLng().long === selectedBranch.long
             );
             if (marker) {
                 marker.openPopup(); // Buka popup untuk marker yang sesuai
@@ -100,21 +109,94 @@ const MapController: React.FC<{
 };
 
 const CabangMaps: React.FC = () => {
-    // State untuk cabang yang dipilih
+    // State untuk cabang yang dipilih dan data cabang
     const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
         null
     );
+    const [branches, setBranches] = React.useState<Branch[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     // Referensi untuk marker
     const markersRef = React.useRef<(LeafletMarker | null)[]>(
         new Array(branches.length).fill(null)
     );
 
+    // Fetch data cabang dari API
+    React.useEffect(() => {
+        const fetchBranches = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.get<ApiBranch[]>("/branch");
+                console.log("API Branch Response:", response.data);
+
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    // Transformasi data API ke format Branch
+                    const transformedBranches: Branch[] = response.data.map(
+                        (apiBranch) => {
+                            const whatsappContact =
+                                apiBranch.branch_contact.find(
+                                    (c) => c.type === "whatsapp"
+                                );
+                            const gofoodContact = apiBranch.branch_contact.find(
+                                (c) => c.type === "gofood"
+                            );
+                            const grabfoodContact =
+                                apiBranch.branch_contact.find(
+                                    (c) => c.type === "grabfood"
+                                );
+
+                            return {
+                                name: apiBranch.name,
+                                address: `Jl. ${apiBranch.name} No.123, Bandar Lampung`, // Dummy address
+                                lat: apiBranch.lat,
+                                long: apiBranch.long, // Gunakan long dari API, alias ke lng
+                                whatsapp: whatsappContact
+                                    ? `https://wa.me/${whatsappContact.contact}`
+                                    : "https://wa.me/6281234567890",
+                                instagram: `https://instagram.com/mixsum_${apiBranch.name.toLowerCase()}`, // Dummy Instagram
+                                gofood: gofoodContact
+                                    ? gofoodContact.contact
+                                    : "https://gofood.link/a/example",
+                                grabfood: grabfoodContact
+                                    ? grabfoodContact.contact
+                                    : "https://grab.link/a/example",
+                                shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase()}`, // Dummy ShopeeFood
+                            };
+                        }
+                    );
+                    setBranches(transformedBranches);
+                    setSelectedBranch(transformedBranches[0]); // Pilih cabang pertama
+                } else {
+                    console.log("Empty API response, using dummy data");
+                    setBranches(dummyBranches);
+                    setSelectedBranch(dummyBranches[0]);
+                }
+            } catch (error) {
+                console.error("Error fetching branch data:", error);
+                setBranches(dummyBranches);
+                setSelectedBranch(dummyBranches[0]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBranches();
+    }, []);
+
+    // Perbarui referensi marker saat branches berubah
+    React.useEffect(() => {
+        markersRef.current = new Array(branches.length).fill(null);
+    }, [branches]);
+
     // Pusat peta awal (rata-rata lat dan lng cabang)
-    const center: LatLngExpression = [
-        branches.reduce((sum, branch) => sum + branch.lat, 0) / branches.length,
-        branches.reduce((sum, branch) => sum + branch.lng, 0) / branches.length,
-    ];
+    const center: LatLngExpression = branches.length
+        ? [
+              branches.reduce((sum, branch) => sum + branch.lat, 0) /
+                  branches.length,
+              branches.reduce((sum, branch) => sum + branch.long, 0) /
+                  branches.length,
+          ]
+        : [-5.3882406, 105.2525734]; // Fallback ke koordinat kedaton
 
     // Opsi untuk react-select
     const options: SelectOption[] = branches.map((branch) => ({
@@ -151,6 +233,14 @@ const CabangMaps: React.FC = () => {
             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         }),
     };
+
+    if (isLoading) {
+        return (
+            <div className="p-5 bg-white rounded-2xl">
+                <p className="text-center text-gray-700">Memuat peta...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-5 bg-white rounded-2xl">
@@ -200,7 +290,7 @@ const CabangMaps: React.FC = () => {
                 {branches.map((branch, index) => (
                     <Marker
                         key={index}
-                        position={[branch.lat, branch.lng]}
+                        position={[branch.lat, branch.long]}
                         icon={customIcon}
                         ref={(ref) => {
                             markersRef.current[index] = ref;
@@ -226,7 +316,7 @@ const CabangMaps: React.FC = () => {
                                     <span className="font-semibold">
                                         Koordinat:
                                     </span>{" "}
-                                    {branch.lat}, {branch.lng}
+                                    {branch.lat}, {branch.long}
                                 </p>
                                 <div className="flex text-xs flex-wrap gap-2">
                                     <a
@@ -256,7 +346,6 @@ const CabangMaps: React.FC = () => {
                                         <SiGojek size={15} />
                                         GoFood
                                     </a>
-
                                     <a
                                         href={branch.shopeefood}
                                         target="_blank"
@@ -267,16 +356,23 @@ const CabangMaps: React.FC = () => {
                                         ShopeeFood
                                     </a>
                                 </div>
-                                <div className="w-full mt-3 border border-amber-400">
-                                    <button className="bg-red-600 flex items-center gap-2 px-3 py-2 rounded-lg w-full text-white">
+                                <div className="w-full mt-3 ">
+                                    <a
+                                        href={branch.whatsapp}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-red-600 flex items-center gap-2 px-3 py-2 rounded-lg w-full text-white"
+                                    >
                                         <span className="flex items-center">
                                             <FaWhatsapp
-                                                className="relative -top-[2px]"
+                                                className="relative text-white -top-[2px]"
                                                 size={20}
                                             />
                                         </span>
-                                        <span>Chat Admin Sekarang</span>
-                                    </button>
+                                        <span className="text-white">
+                                            Chat Admin Sekarang
+                                        </span>
+                                    </a>
                                 </div>
                             </div>
                         </Popup>

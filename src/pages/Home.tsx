@@ -10,12 +10,24 @@ function Home() {
     return (
         <div className="mt-0">
             {/* Tambah margin-top agar konten tidak tertutup navbar fixed */}
-            <HeroSection />
-            <ProductRecommendation />
-            <Promo />
-            <Menu />
-            <Cabang />
-            <Testimoni />
+            <div id="hero">
+                <HeroSection />
+            </div>
+            <div id="recommendation">
+                <ProductRecommendation />
+            </div>
+            <div id="promo">
+                <Promo />
+            </div>
+            <div id="menu">
+                <Menu />
+            </div>
+            <div id="cabang">
+                <Cabang />
+            </div>
+            <div id="testimoni">
+                <Testimoni />
+            </div>
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { BiPlus, BiSolidCart } from "react-icons/bi";
 import Produk1 from "../assets/images/produk/1.png";
 import { apiClient } from "../utils/api";
 import { CartContext } from "../context/CartContext";
+import Swal from "sweetalert2";
 
 // Definisikan tipe untuk respons API produk
 interface ProductItem {
@@ -18,59 +19,82 @@ interface ProductItem {
     updated_at: string;
 }
 
+// Komponen skeleton untuk kartu produk
+const ProductCardSkeleton = () => (
+    <div className="rounded-3xl overflow-hidden bg-white p-2">
+        <div className="relative z-50 max-w-96 rounded-3xl overflow-hidden border-2 border-dashed border-red-950 bg-white p-5">
+            <div className="mx-auto w-32 h-32 bg-gray-300 rounded animate-pulse">
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+            </div>
+            <div className="mt-5 flex flex-col gap-5">
+                <div className="h-6 w-3/4 mx-auto bg-gray-300 rounded animate-pulse"></div>
+                <div className="h-5 w-full bg-gray-300 rounded animate-pulse"></div>
+                <div className="flex justify-between">
+                    <div className="h-5 w-1/3 bg-gray-300 rounded animate-pulse"></div>
+                    <div className="h-8 w-8 bg-gray-300 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="flex justify-center">
+                    <div className="h-7 w-24 bg-gray-300 rounded-2xl animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 const Menu = () => {
     const [products, setProducts] = useState<ProductItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>(
+        {}
+    );
 
     // Akses CartContext
     const context = useContext(CartContext);
-
     if (!context) {
         throw new Error("Menu must be used within a CartProvider");
     }
-
-    const { addToCart } = context;
+    const { addToCart, selectedBranch, setShowBranchModal } = context;
 
     // Data dummy sebagai fallback
-    const dummyProducts = [
+    const dummyProducts: ProductItem[] = [
         {
             id: 1,
             name: "Dimsum Medium Pack",
             description:
-                "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nemo veniam necessitatibus possimus repellat!",
+                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
             path: Produk1,
-            price: "36000",
+            price: "29000",
             slug: "dimsum-medium-pack",
             active: 1,
             product_type_id: 1,
-            created_at: "2025-04-08T07:16:18.000000Z",
-            updated_at: "2025-04-08T07:16:18.000000Z",
+            created_at: "2025-05-07T02:30:13.000000Z",
+            updated_at: "2025-05-07T02:30:13.000000Z",
         },
         {
             id: 2,
-            name: "Dimsum Large Pack",
+            name: "Dimsum Family Pack",
             description:
-                "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nemo veniam necessitatibus possimus repellat!",
+                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
             path: Produk1,
-            price: "45000",
-            slug: "dimsum-large-pack",
+            price: "29000",
+            slug: "dimsum-family-pack",
             active: 1,
             product_type_id: 1,
-            created_at: "2025-04-08T07:16:18.000000Z",
-            updated_at: "2025-04-08T07:16:18.000000Z",
+            created_at: "2025-05-07T02:30:13.000000Z",
+            updated_at: "2025-05-07T02:30:13.000000Z",
         },
         {
             id: 3,
-            name: "Dimsum Mini Pack",
+            name: "Dimsum Special Combo A",
             description:
-                "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nemo veniam necessitatibus possimus repellat!",
+                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
             path: Produk1,
-            price: "25000",
-            slug: "dimsum-mini-pack",
+            price: "29000",
+            slug: "dimsum-special-combo-a",
             active: 1,
             product_type_id: 1,
-            created_at: "2025-04-08T07:16:18.000000Z",
-            updated_at: "2025-04-08T07:16:18.000000Z",
+            created_at: "2025-05-07T02:30:13.000000Z",
+            updated_at: "2025-05-07T02:30:13.000000Z",
         },
     ];
 
@@ -79,7 +103,6 @@ const Menu = () => {
             setIsLoading(true);
             try {
                 const response = await apiClient.get<ProductItem[]>("/product");
-
                 console.log("API Response:", response.data);
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
@@ -94,7 +117,7 @@ const Menu = () => {
                                       ""
                                   )}/${item.path.replace(/^\//, "")}`,
                         }))
-                        .slice(0, 3); // Ambil 3 produk pertama
+                        .slice(0, 3);
 
                     console.log("Processed products:", validProducts);
 
@@ -119,6 +142,7 @@ const Menu = () => {
         };
 
         fetchProductData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fungsi untuk menambahkan produk ke keranjang
@@ -129,14 +153,38 @@ const Menu = () => {
             price: Number(product.price),
             quantity: 1,
         });
-        alert(`${product.name} telah ditambahkan ke keranjang!`);
+        Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: `${product.name} telah ditambahkan ke keranjang!`,
+            timer: 2000,
+            showConfirmButton: false,
+        });
     };
 
     // Fungsi untuk tombol Chat Admin
     const handleChatAdmin = (productName: string) => {
-        const phoneNumber = "6285839023590"; // Nomor WA dengan kode negara
+        if (!selectedBranch) {
+            setShowBranchModal(true);
+            return;
+        }
+
+        const whatsappContact = selectedBranch.branch_contact.find(
+            (contact) => contact.type === "whatsapp"
+        )?.contact;
+        if (!whatsappContact) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Nomor WhatsApp untuk cabang ini tidak tersedia.",
+                confirmButtonColor: "#dc2626",
+            });
+            return;
+        }
+
+        const phoneNumber = whatsappContact.replace(/[^0-9]/g, "");
         const message = encodeURIComponent(
-            `Hallo, Admin, saya mau pesan ${productName}`
+            `Halo, Admin, saya mau pesan ${productName} dari cabang ${selectedBranch.name}`
         );
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
         window.open(whatsappUrl, "_blank");
@@ -147,8 +195,30 @@ const Menu = () => {
             <section className="relative overflow-hidden bg-amber-200 py-16">
                 <div className="relative container mx-auto max-w-7xl px-6">
                     <h2 className="mb-10 text-center text-4xl font-bold text-black md:text-5xl">
-                        Loading...
+                        <span className="me-1.5">Pilihan Dimsum</span>
+                        <span className="relative inline-block text-red-700">
+                            Favorit !
+                            <svg
+                                className="absolute left-0 w-full"
+                                style={{ bottom: "-20px", height: "15px" }}
+                                preserveAspectRatio="none"
+                                viewBox="0 0 100 15"
+                            >
+                                <path
+                                    d="M0,1 Q50,13 100,1"
+                                    stroke="#EF4444"
+                                    strokeWidth="4"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                        </span>
                     </h2>
+                    <div className="grid gap-10 py-10 md:grid-cols-3 md:gap-20">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                            <ProductCardSkeleton key={index} />
+                        ))}
+                    </div>
                 </div>
             </section>
         );
@@ -190,7 +260,6 @@ const Menu = () => {
                     </p>
                 </div>
 
-                {/* product section */}
                 <div className="grid gap-10 py-10 md:grid-cols-3 md:gap-20">
                     {products.map((product) => (
                         <div
@@ -198,17 +267,38 @@ const Menu = () => {
                             className="rounded-3xl bg-white p-2"
                         >
                             <div className="relative z-50 max-w-96 rounded-3xl border-2 border-dashed border-red-950 bg-white p-5">
-                                <img
-                                    src={product.path || Produk1}
-                                    className="mx-auto w-32"
-                                    alt={product.name}
-                                    onError={(e) => {
-                                        console.error(
-                                            `Error loading image: ${product.path}`
-                                        );
-                                        e.currentTarget.src = Produk1;
-                                    }}
-                                />
+                                <div className="relative mx-auto w-32 h-32">
+                                    {!imageLoaded[product.id] && (
+                                        <div className="absolute inset-0 bg-gray-300 rounded animate-pulse">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+                                        </div>
+                                    )}
+                                    <img
+                                        src={product.path || Produk1}
+                                        alt={product.name}
+                                        className={`w-full h-full object-cover ${
+                                            imageLoaded[product.id]
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                        }`}
+                                        onLoad={() =>
+                                            setImageLoaded((prev) => ({
+                                                ...prev,
+                                                [product.id]: true,
+                                            }))
+                                        }
+                                        onError={(e) => {
+                                            console.error(
+                                                `Error loading image: ${product.path}`
+                                            );
+                                            e.currentTarget.src = Produk1;
+                                            setImageLoaded((prev) => ({
+                                                ...prev,
+                                                [product.id]: true,
+                                            }));
+                                        }}
+                                    />
+                                </div>
                                 <div className="mt-5 flex flex-col gap-5">
                                     <h3 className="text-2xl font-bold text-black">
                                         {product.name}
@@ -258,7 +348,6 @@ const Menu = () => {
                 </div>
 
                 <div className="relative z-20 flex items-center justify-center p-4">
-                    {/* Tombol */}
                     <a
                         href="/menu"
                         className="rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800"

@@ -74,6 +74,7 @@ const HeroSection: React.FC = () => {
         };
 
         fetchCarouselData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Atur interval untuk pergantian slide setiap 500ms
@@ -93,8 +94,8 @@ const HeroSection: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="hero-section relative flex h-[20vh] w-full items-center justify-center overflow-hidden md:h-[600px]">
-                <div className="text-lg">Loading...</div>
+            <div className="hero-section relative h-[20vh] w-full overflow-hidden md:h-[600px]">
+                <div className="animate-pulse bg-gray-300 h-full w-full"></div>
             </div>
         );
     }

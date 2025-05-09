@@ -3,7 +3,10 @@ import CabangMaps from "./CabangMaps";
 
 const Cabang = () => {
     return (
-        <section className="relative bot-wave overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 py-24">
+        <section
+            id="lokasi"
+            className="relative bot-wave overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 py-24"
+        >
             <div className="container mx-auto max-w-7xl mt-24 md:mt-0 px-6">
                 <div className="relative text-center mb-16">
                     <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight animate-fade-in">
