@@ -20,7 +20,7 @@ interface ApiBranch {
     id: number;
     name: string;
     lat: number;
-    lng: number; // Ganti long menjadi lng
+    lng: number;
     branch_contact: BranchContact[];
 }
 
@@ -42,6 +42,11 @@ interface SelectOption {
     value: Branch;
     label: string;
 }
+
+// Validasi koordinat
+const isValidCoordinate = (coord: number): boolean => {
+    return typeof coord === "number" && !isNaN(coord) && isFinite(coord);
+};
 
 // Data dummy cabang sebagai fallback
 const dummyBranches: Branch[] = [
@@ -103,7 +108,11 @@ const MapController: React.FC<{
     const map = useMap();
 
     React.useEffect(() => {
-        if (selectedBranch) {
+        if (
+            selectedBranch &&
+            isValidCoordinate(selectedBranch.lat) &&
+            isValidCoordinate(selectedBranch.lng)
+        ) {
             map.setView([selectedBranch.lat, selectedBranch.lng], 15);
             const marker = markers.current.find(
                 (m) =>
@@ -127,9 +136,7 @@ const CabangMaps: React.FC = () => {
     const [branches, setBranches] = React.useState<Branch[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const markersRef = React.useRef<(LeafletMarker | null)[]>(
-        new Array(branches.length).fill(null)
-    );
+    const markersRef = React.useRef<(LeafletMarker | null)[]>([]);
 
     // Fetch data cabang dari API
     React.useEffect(() => {
@@ -140,8 +147,13 @@ const CabangMaps: React.FC = () => {
                 console.log("API Branch Response:", response.data);
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    const transformedBranches: Branch[] = response.data.map(
-                        (apiBranch) => {
+                    const transformedBranches: Branch[] = response.data
+                        .filter(
+                            (apiBranch) =>
+                                isValidCoordinate(apiBranch.lat) &&
+                                isValidCoordinate(apiBranch.lng)
+                        )
+                        .map((apiBranch) => {
                             const whatsappContact =
                                 apiBranch.branch_contact.find(
                                     (c) => c.type === "whatsapp"
@@ -171,10 +183,18 @@ const CabangMaps: React.FC = () => {
                                     : "https://grab.link/a/example",
                                 shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase()}`,
                             };
-                        }
-                    );
-                    setBranches(transformedBranches);
-                    setSelectedBranch(transformedBranches[0]);
+                        });
+
+                    if (transformedBranches.length > 0) {
+                        setBranches(transformedBranches);
+                        setSelectedBranch(transformedBranches[0]);
+                    } else {
+                        console.log(
+                            "No valid branches found, using dummy data"
+                        );
+                        setBranches(dummyBranches);
+                        setSelectedBranch(dummyBranches[0]);
+                    }
                 } else {
                     console.log("Empty API response, using dummy data");
                     setBranches(dummyBranches);
@@ -206,6 +226,13 @@ const CabangMaps: React.FC = () => {
                   branches.length,
           ]
         : [-5.3882406, 105.2525734];
+
+    // Validasi pusat peta
+    if (!isValidCoordinate(center[0]) || !isValidCoordinate(center[1])) {
+        console.warn("Invalid center coordinates, using fallback");
+        center[0] = -5.3882406;
+        center[1] = 105.2525734;
+    }
 
     // Opsi untuk react-select
     const options: SelectOption[] = branches.map((branch) => ({
