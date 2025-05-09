@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { apiClient } from "../utils/api";
 import { FaWhatsapp, FaMapMarkerAlt } from "react-icons/fa";
 import { SiGojek, SiGrab } from "react-icons/si";
-import { TbBrandGolang } from "react-icons/tb"; // Placeholder untuk GoFood
 
 // Definisikan tipe untuk respons API cabang
 interface BranchContact {

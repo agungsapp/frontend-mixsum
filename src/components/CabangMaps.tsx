@@ -2,9 +2,9 @@ import * as React from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { LatLngExpression, Icon, Marker as LeafletMarker } from "leaflet";
 import Select, { StylesConfig, SingleValue } from "react-select";
-import "leaflet/dist/leaflet.css"; // Impor CSS Leaflet untuk styling marker dan popup
+import "leaflet/dist/leaflet.css";
 import { SiGojek, SiShopee, SiGrab } from "react-icons/si";
-import { FaWhatsapp, FaInstagram } from "react-icons/fa";
+import { FaWhatsapp, FaInstagram, FaMapMarkerAlt } from "react-icons/fa";
 import { apiClient } from "../utils/api";
 
 // Definisi tipe untuk kontak cabang
@@ -20,7 +20,7 @@ interface ApiBranch {
     id: number;
     name: string;
     lat: number;
-    long: number; // Menggunakan lng untuk konsistensi dengan kode asli
+    lng: number; // Ganti long menjadi lng
     branch_contact: BranchContact[];
 }
 
@@ -29,7 +29,7 @@ interface Branch {
     name: string;
     address: string;
     lat: number;
-    long: number;
+    lng: number;
     whatsapp: string;
     instagram: string;
     gofood: string;
@@ -49,8 +49,8 @@ const dummyBranches: Branch[] = [
         name: "kedaton",
         address: "Jl. Sudirman No.123, Bandar Lampung",
         lat: -5.3882406,
-        long: 105.2525734,
-        whatsapp: "https://wa.me/6287868767807",
+        lng: 105.2525734,
+        whatsapp: "6287868767807",
         instagram: "https://instagram.com/mixsum_kedaton",
         gofood: "https://gofood.link/a/yMa5Qvs",
         grabfood:
@@ -61,8 +61,8 @@ const dummyBranches: Branch[] = [
         name: "korpri",
         address: "Jl. Veteran No.456, Bandar Lampung",
         lat: -5.3776707,
-        long: 105.2938625,
-        whatsapp: "https://wa.me/6289522282600",
+        lng: 105.2938625,
+        whatsapp: "6289522282600",
         instagram: "https://instagram.com/mixsum_korpri",
         gofood: "https://gofood.link/a/GETUzLd",
         grabfood:
@@ -83,6 +83,18 @@ const customIcon = new Icon({
     shadowSize: [41, 41],
 });
 
+// Komponen skeleton untuk peta
+const MapSkeleton = () => (
+    <div className="p-5 bg-white rounded-2xl">
+        <div className="h-10 w-1/2 bg-gray-300 rounded animate-pulse mb-4 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+        </div>
+        <div className="w-full h-[60vh] bg-gray-300 rounded animate-pulse relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+        </div>
+    </div>
+);
+
 // Komponen untuk mengatur peta saat cabang dipilih
 const MapController: React.FC<{
     selectedBranch: Branch | null;
@@ -92,15 +104,15 @@ const MapController: React.FC<{
 
     React.useEffect(() => {
         if (selectedBranch) {
-            map.setView([selectedBranch.lat, selectedBranch.long], 15); // Pindah ke cabang dengan zoom 15
+            map.setView([selectedBranch.lat, selectedBranch.lng], 15);
             const marker = markers.current.find(
                 (m) =>
                     m &&
                     m.getLatLng().lat === selectedBranch.lat &&
-                    m.getLatLng().long === selectedBranch.long
+                    m.getLatLng().lng === selectedBranch.lng
             );
             if (marker) {
-                marker.openPopup(); // Buka popup untuk marker yang sesuai
+                marker.openPopup();
             }
         }
     }, [selectedBranch, map, markers]);
@@ -109,14 +121,12 @@ const MapController: React.FC<{
 };
 
 const CabangMaps: React.FC = () => {
-    // State untuk cabang yang dipilih dan data cabang
     const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
         null
     );
     const [branches, setBranches] = React.useState<Branch[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    // Referensi untuk marker
     const markersRef = React.useRef<(LeafletMarker | null)[]>(
         new Array(branches.length).fill(null)
     );
@@ -130,7 +140,6 @@ const CabangMaps: React.FC = () => {
                 console.log("API Branch Response:", response.data);
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    // Transformasi data API ke format Branch
                     const transformedBranches: Branch[] = response.data.map(
                         (apiBranch) => {
                             const whatsappContact =
@@ -147,25 +156,25 @@ const CabangMaps: React.FC = () => {
 
                             return {
                                 name: apiBranch.name,
-                                address: `Jl. ${apiBranch.name} No.123, Bandar Lampung`, // Dummy address
+                                address: `Jl. ${apiBranch.name} No.123, Bandar Lampung`,
                                 lat: apiBranch.lat,
-                                long: apiBranch.long, // Gunakan long dari API, alias ke lng
+                                lng: apiBranch.lng,
                                 whatsapp: whatsappContact
-                                    ? `https://wa.me/${whatsappContact.contact}`
-                                    : "https://wa.me/6281234567890",
-                                instagram: `https://instagram.com/mixsum_${apiBranch.name.toLowerCase()}`, // Dummy Instagram
+                                    ? whatsappContact.contact
+                                    : "6281234567890",
+                                instagram: `https://instagram.com/mixsum_${apiBranch.name.toLowerCase()}`,
                                 gofood: gofoodContact
                                     ? gofoodContact.contact
                                     : "https://gofood.link/a/example",
                                 grabfood: grabfoodContact
                                     ? grabfoodContact.contact
                                     : "https://grab.link/a/example",
-                                shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase()}`, // Dummy ShopeeFood
+                                shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase()}`,
                             };
                         }
                     );
                     setBranches(transformedBranches);
-                    setSelectedBranch(transformedBranches[0]); // Pilih cabang pertama
+                    setSelectedBranch(transformedBranches[0]);
                 } else {
                     console.log("Empty API response, using dummy data");
                     setBranches(dummyBranches);
@@ -188,15 +197,15 @@ const CabangMaps: React.FC = () => {
         markersRef.current = new Array(branches.length).fill(null);
     }, [branches]);
 
-    // Pusat peta awal (rata-rata lat dan lng cabang)
+    // Pusat peta awal
     const center: LatLngExpression = branches.length
         ? [
               branches.reduce((sum, branch) => sum + branch.lat, 0) /
                   branches.length,
-              branches.reduce((sum, branch) => sum + branch.long, 0) /
+              branches.reduce((sum, branch) => sum + branch.lng, 0) /
                   branches.length,
           ]
-        : [-5.3882406, 105.2525734]; // Fallback ke koordinat kedaton
+        : [-5.3882406, 105.2525734];
 
     // Opsi untuk react-select
     const options: SelectOption[] = branches.map((branch) => ({
@@ -204,7 +213,7 @@ const CabangMaps: React.FC = () => {
         label: branch.name,
     }));
 
-    // Styling kustom untuk react-select dengan Tailwind CSS
+    // Styling kustom untuk react-select
     const customStyles: StylesConfig<SelectOption, false> = {
         control: (provided) => ({
             ...provided,
@@ -235,11 +244,7 @@ const CabangMaps: React.FC = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="p-5 bg-white rounded-2xl">
-                <p className="text-center text-gray-700">Memuat peta...</p>
-            </div>
-        );
+        return <MapSkeleton />;
     }
 
     return (
@@ -290,7 +295,7 @@ const CabangMaps: React.FC = () => {
                 {branches.map((branch, index) => (
                     <Marker
                         key={index}
-                        position={[branch.lat, branch.long]}
+                        position={[branch.lat, branch.lng]}
                         icon={customIcon}
                         ref={(ref) => {
                             markersRef.current[index] = ref;
@@ -303,7 +308,7 @@ const CabangMaps: React.FC = () => {
                     >
                         <Popup maxWidth={500}>
                             <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200">
-                                <h3 className="text-base font-bold text-gray-800 mb-2">
+                                <h3 className="text-base font-bold text-gray-800 mb-2 capitalize">
                                     {branch.name}
                                 </h3>
                                 <p className="text-xs text-gray-600 mb-1">
@@ -316,9 +321,18 @@ const CabangMaps: React.FC = () => {
                                     <span className="font-semibold">
                                         Koordinat:
                                     </span>{" "}
-                                    {branch.lat}, {branch.long}
+                                    {branch.lat}, {branch.lng}
                                 </p>
-                                <div className="flex text-xs flex-wrap gap-2">
+                                <div className="flex text-xs flex-wrap gap-2 mb-3">
+                                    <a
+                                        href={`https://www.google.com/maps?q=${branch.lat},${branch.lng}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-blue-500 hover:bg-blue-100 p-2 rounded transition-colors"
+                                    >
+                                        <FaMapMarkerAlt size={15} />
+                                        Google Maps
+                                    </a>
                                     <a
                                         href={branch.instagram}
                                         target="_blank"
@@ -356,22 +370,19 @@ const CabangMaps: React.FC = () => {
                                         ShopeeFood
                                     </a>
                                 </div>
-                                <div className="w-full mt-3 ">
+                                <div className="w-full">
                                     <a
-                                        href={branch.whatsapp}
+                                        href={`https://wa.me/${
+                                            branch.whatsapp
+                                        }?text=${encodeURIComponent(
+                                            `Halo admin ${branch.name}`
+                                        )}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="bg-red-600 flex items-center gap-2 px-3 py-2 rounded-lg w-full text-white"
+                                        className="bg-red-600 flex items-center justify-center gap-2 px-3 py-2 rounded-lg w-full text-white"
                                     >
-                                        <span className="flex items-center">
-                                            <FaWhatsapp
-                                                className="relative text-white -top-[2px]"
-                                                size={20}
-                                            />
-                                        </span>
-                                        <span className="text-white">
-                                            Chat Admin Sekarang
-                                        </span>
+                                        <FaWhatsapp size={20} />
+                                        Chat Admin Sekarang
                                     </a>
                                 </div>
                             </div>
