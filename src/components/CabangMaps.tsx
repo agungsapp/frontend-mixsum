@@ -20,7 +20,7 @@ interface ApiBranch {
     id: number;
     name: string;
     lat: number;
-    lng: number;
+    long: number; // Sesuaikan dengan struktur API
     branch_contact: BranchContact[];
 }
 
@@ -151,7 +151,7 @@ const CabangMaps: React.FC = () => {
                         .filter(
                             (apiBranch) =>
                                 isValidCoordinate(apiBranch.lat) &&
-                                isValidCoordinate(apiBranch.lng)
+                                isValidCoordinate(apiBranch.long)
                         )
                         .map((apiBranch) => {
                             const whatsappContact =
@@ -170,7 +170,7 @@ const CabangMaps: React.FC = () => {
                                 name: apiBranch.name,
                                 address: `Jl. ${apiBranch.name} No.123, Bandar Lampung`,
                                 lat: apiBranch.lat,
-                                lng: apiBranch.lng,
+                                lng: apiBranch.long, // Petakan long ke lng
                                 whatsapp: whatsappContact
                                     ? whatsappContact.contact
                                     : "6281234567890",
@@ -408,8 +408,13 @@ const CabangMaps: React.FC = () => {
                                         rel="noopener noreferrer"
                                         className="bg-red-600 flex items-center justify-center gap-2 px-3 py-2 rounded-lg w-full text-white"
                                     >
-                                        <FaWhatsapp size={20} />
-                                        Chat Admin Sekarang
+                                        <FaWhatsapp
+                                            className="text-white"
+                                            size={20}
+                                        />
+                                        <span className="text-white">
+                                            Chat Admin Sekarang
+                                        </span>
                                     </a>
                                 </div>
                             </div>
