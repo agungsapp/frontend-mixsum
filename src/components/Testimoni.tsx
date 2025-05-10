@@ -1,22 +1,119 @@
-import { BiRightArrowAlt, BiSolidStar } from "react-icons/bi";
-import "swiper/css"; // Import CSS dasar Swiper
-import "swiper/css/navigation"; // Import CSS navigasi (kita akan perbaiki styling-nya)
-import { Navigation } from "swiper/modules";
+import { useState, useEffect } from "react";
+import { apiClient } from "../utils/api";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import Profile from "../assets/images/profile/profile.jpg";
+import { BsArrowRight } from "react-icons/bs";
+import { BiStar } from "react-icons/bi";
+
+// Definisikan tipe untuk respons API testimoni
+interface Testimonial {
+    id: number;
+    product_id: number;
+    name: string;
+    path: string;
+    rating: number;
+    comment: string;
+    address: string;
+    created_at: string;
+    updated_at: string;
+}
+
+// Komponen skeleton untuk kartu testimoni
+const TestimonialCardSkeleton = () => (
+    <div className="relative flex flex-col gap-4 rounded-2xl border-t-2 border-l-2 border-red-700 bg-white p-4">
+        <div className="flex justify-start gap-2 align-baseline">
+            <div className="h-16 w-16 bg-gray-200 rounded-full animate-pulse relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+            </div>
+            <div>
+                <div className="h-6 w-24 bg-gray-200 rounded animate-pulse mb-2 relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+                </div>
+                <div className="flex gap-1">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="h-5 w-5 bg-gray-200 rounded animate-pulse relative"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+        <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse mb-2 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+        </div>
+        <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+        </div>
+        <div className="absolute -top-4 right-2 h-6 w-24 bg-gray-200 rounded-3xl animate-pulse relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+        </div>
+    </div>
+);
 
 const Testimoni = () => {
-    // Data dummy untuk looping 5 kali
-    const testimonials = Array.from({ length: 5 }, (_, index) => ({
-        id: index + 1,
-        name: `Carlo Neira ${index + 1}`,
-        image: Profile,
-        rating: 4,
-        comment:
-            "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Blanditiis vero voluptates ex quaerat. Rerum, dolor!",
-        location: "Rajabasa, Bandar Lampung",
-        product: "Mixsum Medium Pack",
-    }));
+    const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Data dummy sebagai fallback minimal
+    const dummyTestimonials: Testimonial[] = [
+        {
+            id: 1,
+            product_id: 1,
+            name: "Melisa",
+            path: "testimoni/default.png",
+            rating: 5,
+            comment: "Dimsumnya enak banget, ukurannya pas dan rasanya mantap!",
+            address: "Kedaton, Bandar Lampung",
+            created_at: "2025-05-10T02:33:11.000000Z",
+            updated_at: "2025-05-10T02:33:11.000000Z",
+        },
+        {
+            id: 2,
+            product_id: 14,
+            name: "Agustian",
+            path: "testimoni/default.png",
+            rating: 4,
+            comment:
+                "Cake Dimsumnya unik, cocok buat acara keluarga. Sausnya bikin nagih!",
+            address: "Korpri, Bandar Lampung",
+            created_at: "2025-05-10T02:33:11.000000Z",
+            updated_at: "2025-05-10T02:33:11.000000Z",
+        },
+    ];
+
+    // Fetch data testimoni
+    useEffect(() => {
+        const fetchTestimonials = async () => {
+            setIsLoading(true);
+            try {
+                const response = await apiClient.get<Testimonial[]>(
+                    "/testimoni"
+                );
+                console.log("Testimoni API Response:", response.data);
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    setTestimonials(response.data);
+                } else {
+                    console.log(
+                        "Empty testimoni API response, using dummy data"
+                    );
+                    setTestimonials(dummyTestimonials);
+                }
+            } catch (error) {
+                console.error("Error fetching testimoni data:", error);
+                setTestimonials(dummyTestimonials);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTestimonials();
+    }, []);
 
     return (
         <section className="relative overflow-hidden bg-gray-100 py-16">
@@ -55,13 +152,22 @@ const Testimoni = () => {
                     <div className="h-20 w-2 bg-red-700"></div>
                     <div className="relative flex w-full items-center gap-2">
                         {/* Custom navigation buttons */}
-                        <div className="testimonial-swiper-button-next absolute right-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-red-700">
-                            <BiRightArrowAlt size={25} className="text-white" />
+                        {/* <div
+                            className="testimonial-swiper-button-prev absolute left-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-red-700"
+                            aria-label="Previous testimonial"
+                        >
+                            <BsArrowLeft size={25} className="text-white" />
+                        </div> */}
+                        <div
+                            className="testimonial-swiper-button-next absolute right-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-red-700"
+                            aria-label="Next testimonial"
+                        >
+                            <BsArrowRight size={25} className="text-white" />
                         </div>
 
                         {/* Swiper component */}
                         <Swiper
-                            modules={[Navigation]}
+                            modules={[Navigation, Autoplay]}
                             spaceBetween={10}
                             slidesPerView={1}
                             loop={true}
@@ -71,50 +177,69 @@ const Testimoni = () => {
                             }}
                             className="testimonial-swiper w-xl"
                         >
-                            {testimonials.map((testimonial) => (
-                                <SwiperSlide
-                                    key={testimonial.id}
-                                    className="p-4"
-                                >
-                                    <div className="relative flex flex-col gap-4 rounded-2xl border-t-2 border-l-2 border-red-700 bg-white p-4">
-                                        <div className="flex justify-start gap-2 align-baseline">
-                                            <img
-                                                src={testimonial.image}
-                                                className="h-16 w-16 rounded-full object-cover"
-                                                alt="profile"
-                                            />
-                                            <div className="">
-                                                <p className="text-xl font-bold text-black">
-                                                    {testimonial.name}
-                                                </p>
-                                                <div className="flex gap-1">
-                                                    {Array.from(
-                                                        {
-                                                            length: testimonial.rating,
-                                                        },
-                                                        (_, i) => (
-                                                            <BiSolidStar
-                                                                key={i}
-                                                                size={20}
-                                                                className="text-yellow-400"
-                                                            />
-                                                        )
-                                                    )}
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, index) => (
+                                    <SwiperSlide key={index} className="p-4">
+                                        <TestimonialCardSkeleton />
+                                    </SwiperSlide>
+                                ))
+                            ) : testimonials.length === 0 ? (
+                                <SwiperSlide className="p-4">
+                                    <p className="text-center text-black text-base font-bold">
+                                        Tidak ada testimoni yang ditemukan.
+                                    </p>
+                                </SwiperSlide>
+                            ) : (
+                                testimonials.map((testimonial) => (
+                                    <SwiperSlide
+                                        key={testimonial.id}
+                                        className="p-4"
+                                    >
+                                        <div className="relative flex flex-col gap-4 rounded-2xl border-t-2 border-l-2 border-red-700 bg-white p-4">
+                                            <div className="flex justify-start gap-2 align-baseline">
+                                                <img
+                                                    src={`${testimonial.path}`}
+                                                    className="h-16 w-16 rounded-full object-cover"
+                                                    alt={`Profile of ${testimonial.name}`}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src =
+                                                            "/fallback-profile.jpg";
+                                                    }}
+                                                />
+                                                <div>
+                                                    <p className="text-xl font-bold text-black">
+                                                        {testimonial.name}
+                                                    </p>
+                                                    <div className="flex gap-1">
+                                                        {Array.from(
+                                                            {
+                                                                length: testimonial.rating,
+                                                            },
+                                                            (_, i) => (
+                                                                <BiStar
+                                                                    key={i}
+                                                                    size={20}
+                                                                    className="text-yellow-400"
+                                                                    fill="currentColor"
+                                                                />
+                                                            )
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <p className="text-sm text-red-950">
+                                                {testimonial.comment}
+                                            </p>
+                                            <p className="text-base font-bold text-slate-900">
+                                                {testimonial.address}
+                                            </p>
+                                            <span className="absolute -top-4 right-2 rounded-3xl bg-red-700 px-[10px] py-[5px] text-sm font-bold text-white">
+                                                Mixsum Product
+                                            </span>
                                         </div>
-                                        <p className="text-sm text-red-950">
-                                            {testimonial.comment}
-                                        </p>
-                                        <p className="text-base font-bold text-slate-900">
-                                            {testimonial.location}
-                                        </p>
-                                        <span className="absolute -top-4 right-2 rounded-3xl bg-red-700 px-[10px] py-[5px] text-sm font-bold text-white">
-                                            {testimonial.product}
-                                        </span>
-                                    </div>
-                                </SwiperSlide>
-                            ))}
+                                    </SwiperSlide>
+                                ))
+                            )}
                         </Swiper>
                     </div>
                     <div className="h-20 w-2 bg-red-700"></div>
