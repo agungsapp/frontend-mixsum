@@ -19,6 +19,18 @@ interface Testimonial {
     address: string;
     created_at: string;
     updated_at: string;
+    product: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string;
+        path: string;
+        price: string;
+        active: number;
+        product_type_id: number;
+        created_at: string;
+        updated_at: string;
+    };
 }
 
 // Komponen skeleton untuk kartu testimoni
@@ -72,6 +84,18 @@ const Testimoni = () => {
             address: "Kedaton, Bandar Lampung",
             created_at: "2025-05-10T02:33:11.000000Z",
             updated_at: "2025-05-10T02:33:11.000000Z",
+            product: {
+                id: 1,
+                name: "DIMSUM",
+                slug: "dimsum",
+                description: "isi 5 pcs",
+                path: "produk/1.png",
+                price: "15000",
+                active: 1,
+                product_type_id: 1,
+                created_at: "2025-05-10T02:33:10.000000Z",
+                updated_at: "2025-05-10T02:33:10.000000Z",
+            },
         },
         {
             id: 2,
@@ -84,6 +108,18 @@ const Testimoni = () => {
             address: "Korpri, Bandar Lampung",
             created_at: "2025-05-10T02:33:11.000000Z",
             updated_at: "2025-05-10T02:33:11.000000Z",
+            product: {
+                id: 14,
+                name: "CAKE DIMSUM",
+                slug: "cake-dimsum",
+                description: "isi 36 pcs dimsum varian mix",
+                path: "produk/14.png",
+                price: "105000",
+                active: 1,
+                product_type_id: 1,
+                created_at: "2025-05-10T02:33:10.000000Z",
+                updated_at: "2025-05-10T02:33:10.000000Z",
+            },
         },
     ];
 
@@ -234,7 +270,7 @@ const Testimoni = () => {
                                                 {testimonial.address}
                                             </p>
                                             <span className="absolute -top-4 right-2 rounded-3xl bg-red-700 px-[10px] py-[5px] text-sm font-bold text-white">
-                                                Mixsum Product
+                                                {testimonial.product.name}
                                             </span>
                                         </div>
                                     </SwiperSlide>
