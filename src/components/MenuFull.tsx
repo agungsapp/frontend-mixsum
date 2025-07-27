@@ -45,8 +45,9 @@ const MenuFull = () => {
     const [products, setProducts] = useState<ProductItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeTab, setActiveTab] = useState<"all" | "food" | "drink">("all");
+    const [activeTab, setActiveTab] = useState<string>("all");
     const [sortMode, setSortMode] = useState<"lowest" | "highest" | null>(null);
+    const [productTypes, setProductTypes] = useState<{ id: number; name: string }[]>([]);
     const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>(
         {}
     );
@@ -71,7 +72,7 @@ const MenuFull = () => {
             price: "29000",
             slug: "dimsum-medium-pack",
             active: 1,
-            product_type_id: 1,
+            product_type_id: 1, // Paket Regular
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -81,10 +82,10 @@ const MenuFull = () => {
             description:
                 "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
             path: Produk1,
-            price: "29000",
+            price: "45000",
             slug: "dimsum-family-pack",
             active: 1,
-            product_type_id: 1,
+            product_type_id: 2, // Spesial Pack
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -97,13 +98,44 @@ const MenuFull = () => {
             price: "10000",
             slug: "es-teh-manis",
             active: 1,
-            product_type_id: 2,
+            product_type_id: 3, // Minuman
+            created_at: "2025-05-07T02:30:13.000000Z",
+            updated_at: "2025-05-07T02:30:13.000000Z",
+        },
+        {
+            id: 4,
+            name: "Catering Pack",
+            description:
+                "Lorem ipsum dolor sit amet consectetur. Viverra curabitur ut et pellentesque ipsum nunc pellentesque turpis risus.",
+            path: Produk1,
+            price: "100000",
+            slug: "catering-pack",
+            active: 1,
+            product_type_id: 4, // Catering
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
     ];
 
     useEffect(() => {
+
+        const fetchProductTypes = async () => {
+            try {
+                const response = await apiClient.get<{ id: number; name: string }[]>("/product-type");
+                setProductTypes(response.data.data);
+            } catch (error) {
+                console.error("Error fetching product types:", error);
+                setProductTypes([
+                    { id: 1, name: "Paket Regular" },
+                    { id: 2, name: "Spesial Pack" },
+                    { id: 3, name: "Minuman" },
+                    { id: 4, name: "Catering" },
+                ]);
+            }
+        };
+
+        fetchProductTypes();
+
         const fetchProductData = async () => {
             setIsLoading(true);
             try {
@@ -208,20 +240,17 @@ const MenuFull = () => {
         let filteredProducts = products;
 
         // Filter berdasarkan tab
-        if (activeTab === "food") {
+        if (activeTab !== "all") {
             filteredProducts = products.filter(
-                (product) => product.product_type_id === 1
-            );
-        } else if (activeTab === "drink") {
-            filteredProducts = products.filter(
-                (product) => product.product_type_id === 2
+                (product) => product.product_type_id === Number(activeTab)
             );
         }
 
         // Filter berdasarkan pencarian
         if (searchQuery) {
+            const cleanedQuery = searchQuery.trim().toLowerCase();
             filteredProducts = filteredProducts.filter((product) =>
-                product.name.toLowerCase().includes(searchQuery.toLowerCase())
+                product.name.toLowerCase().includes(cleanedQuery)
             );
         }
 
@@ -323,7 +352,7 @@ const MenuFull = () => {
                         />
                     </div>
 
-                    <div className="flex gap-2">
+                   <div className="flex gap-2 flex-wrap">
                         <button
                             className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
                                 activeTab === "all"
@@ -334,26 +363,19 @@ const MenuFull = () => {
                         >
                             Semua
                         </button>
-                        <button
-                            className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                                activeTab === "food"
-                                    ? "bg-red-700 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                            onClick={() => setActiveTab("food")}
-                        >
-                            Makanan
-                        </button>
-                        <button
-                            className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                                activeTab === "drink"
-                                    ? "bg-red-700 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                            onClick={() => setActiveTab("drink")}
-                        >
-                            Minuman
-                        </button>
+                        {productTypes.map((type) => (
+                            <button
+                                key={type.id}
+                                className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
+                                    activeTab === type.id.toString()
+                                        ? "bg-red-700 text-white"
+                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}
+                                onClick={() => setActiveTab(type.id.toString())}
+                            >
+                                {type.name}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="relative">

@@ -355,7 +355,11 @@ const CabangMaps: React.FC = () => {
                                 </p>
                                 <div className="flex text-xs flex-wrap gap-2 mb-3">
                                     <a
-                                        href={`https://www.google.com/maps?q=${branch.lat},${branch.lng}`}
+                                        href={`https://www.google.com/maps/search/?api=1&query=${
+                                            branch.name.toLowerCase() === 'kedaton'
+                                                ? encodeURIComponent('mix kitchen')
+                                                : `mixsum+${encodeURIComponent(branch.name)}`
+                                        }+${branch.lat},${branch.lng}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 text-blue-500 hover:bg-blue-100 p-2 rounded transition-colors"
@@ -363,6 +367,9 @@ const CabangMaps: React.FC = () => {
                                         <FaMapMarkerAlt size={15} />
                                         Google Maps
                                     </a>
+
+
+
                                     <a
                                         href={branch.instagram}
                                         target="_blank"

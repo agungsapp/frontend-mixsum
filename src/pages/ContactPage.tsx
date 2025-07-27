@@ -157,17 +157,23 @@ const ContactPage = () => {
 
         // Tambahkan ikon Google Maps
         socialIcons.push(
-            <a
-                key={`maps-${branch.id}`}
-                href={`https://www.google.com/maps?q=${branch.lat},${branch.long}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 hover:scale-105 transition-all"
-                aria-label={`View ${branch.name} on Google Maps`}
-            >
-                <FaMapMarkerAlt size={20} />
-                <span>Maps</span>
-            </a>
+         <a
+            key={`maps-${branch.id}`}
+            href={`https://www.google.com/maps/search/?api=1&query=${
+                branch.name.toLowerCase() === 'kedaton'
+                    ? encodeURIComponent('mix kitchen')
+                    : `mixsum+${encodeURIComponent(branch.name)}`
+            }+${branch.lat},${branch.long}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 hover:scale-105 transition-all"
+            aria-label={`View ${branch.name} on Google Maps`}
+        >
+            <FaMapMarkerAlt size={20} />
+            <span>Maps</span>
+        </a>
+
+
         );
 
         // Tambahkan ikon sosial media lainnya
@@ -203,10 +209,10 @@ const ContactPage = () => {
                 <a
                     key={contact.id}
                     href={
-                        type === "whatsapp"
+                        type === 'whatsapp'
                             ? `https://wa.me/${link}?text=${encodeURIComponent(
-                                  `Halo admin ${branch.name}`
-                              )}`
+                                `Hallo kak, ada yang bisa kami bantu untuk pesanannya? 😊🙏🏻`
+                            )}`
                             : link
                     }
                     target="_blank"
