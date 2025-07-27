@@ -1,13 +1,14 @@
 import { useState, useEffect, useContext } from "react";
 import { BiPlus, BiSolidCart } from "react-icons/bi";
+import { BsArrowRight } from "react-icons/bs";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
 import "swiper/css";
-import Countdown from "./Countdown";
 import Produk1 from "../assets/images/produk/1.png";
 import { apiClient } from "../utils/api";
 import { CartContext } from "../context/CartContext";
 import Swal from "sweetalert2";
+import Countdown from "./Countdown";
 
 // Definisikan tipe untuk respons API promo
 interface PromoDetails {
@@ -61,6 +62,7 @@ const Promo = () => {
     const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>(
         {}
     );
+    const [activeEndTime, setActiveEndTime] = useState<number>(0);
 
     // Akses CartContext
     const context = useContext(CartContext);
@@ -87,8 +89,8 @@ const Promo = () => {
                 id: 1,
                 product_id: 1,
                 promo_price: 29000,
-                start_date: "2025-05-01",
-                end_date: "2025-05-30",
+                start_date: "2025-05-01 00:00:00",
+                end_date: "2025-05-30 23:59:59",
                 created_at: "2025-05-08T00:00:00.000000Z",
                 updated_at: "2025-05-08T00:00:00.000000Z",
             },
@@ -119,10 +121,19 @@ const Promo = () => {
                                 : `${import.meta.env.VITE_API_BASE_URL?.replace(
                                       /\/api\/?$/,
                                       ""
-                                  )}/${item.path.replace(/^\//, "")}`,
+                                  )}/${
+                                      item.path.startsWith("/")
+                                          ? item.path.slice(1)
+                                          : item.path
+                                  }`,
                         }));
 
                     setPromos(validPromos);
+                    if (validPromos.length > 0) {
+                        setActiveEndTime(
+                            new Date(validPromos[0].promo.end_date).getTime()
+                        );
+                    }
                 } else {
                     console.log("No active promos found, hiding section");
                     setPromos([]);
@@ -130,6 +141,9 @@ const Promo = () => {
             } catch (error) {
                 console.error("Error fetching promo data:", error);
                 setPromos(dummyPromos);
+                setActiveEndTime(
+                    new Date(dummyPromos[0].promo.end_date).getTime()
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -189,12 +203,6 @@ const Promo = () => {
         return null;
     }
 
-    // Gunakan end_date dari promo pertama untuk Countdown
-    const endTime =
-        promos.length > 0
-            ? new Date(promos[0].promo.end_date).getTime()
-            : new Date().getTime() + 1000 * 60 * 60 * 24;
-
     return (
         <div className="bg-amber-200 py-12 md:py-16">
             <div className="container mx-auto flex max-w-7xl flex-col items-center justify-between gap-12 px-6 md:flex-row md:gap-36">
@@ -211,23 +219,27 @@ const Promo = () => {
                     <p className="text-center animate-pulse transition-all duration-75 text-lg font-semibold text-red-950 md:text-xl">
                         🔥 Promo ini hanya berlaku untuk waktu terbatas! 🔥
                     </p>
-                    <Countdown endTime={endTime} />
+                    <Countdown endTime={activeEndTime} />
                 </div>
 
                 {/* Bagian Kanan: Swiper Produk */}
-                <div className="flex w-full justify-center md:w-1/2">
+                <div className="flex w-full justify-center md:w-1/2 relative">
                     {isLoading ? (
                         <Swiper
                             loop={true}
                             grabCursor={true}
                             autoplay={{
-                                delay: 2500,
+                                delay: 3000,
                                 disableOnInteraction: false,
                             }}
-                            modules={[Autoplay]}
+                            modules={[Autoplay, Navigation]}
                             spaceBetween={30}
                             slidesPerView={1}
                             centeredSlides={true}
+                            navigation={{
+                                nextEl: ".promo-swiper-button-next",
+                                prevEl: ".promo-swiper-button-prev",
+                            }}
                             className="w-full max-w-80 md:max-w-96"
                         >
                             <SwiperSlide>
@@ -235,110 +247,143 @@ const Promo = () => {
                             </SwiperSlide>
                         </Swiper>
                     ) : (
-                        <Swiper
-                            loop={true}
-                            grabCursor={true}
-                            autoplay={{
-                                delay: 2500,
-                                disableOnInteraction: false,
-                            }}
-                            modules={[Autoplay]}
-                            spaceBetween={30}
-                            slidesPerView={1}
-                            centeredSlides={true}
-                            className="w-full max-w-80 md:max-w-96"
-                        >
-                            {promos.map((promo) => (
-                                <SwiperSlide key={promo.id}>
-                                    <div className="relative z-50 w-full rounded-3xl border-2 border-dashed border-red-950 p-5">
-                                        <div className="relative mx-auto w-24 h-24 md:w-32 md:h-32">
-                                            {!imageLoaded[promo.id] && (
-                                                <div className="absolute inset-0 bg-gray-300 rounded-3xl overflow-hidden animate-pulse">
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
-                                                </div>
-                                            )}
-                                            <img
-                                                src={promo.path || Produk1}
-                                                alt={promo.name}
-                                                className={`w-full h-full object-cover ${
-                                                    imageLoaded[promo.id]
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                }`}
-                                                onLoad={() =>
-                                                    setImageLoaded((prev) => ({
-                                                        ...prev,
-                                                        [promo.id]: true,
-                                                    }))
-                                                }
-                                                onError={(e) => {
-                                                    console.error(
-                                                        `Error loading image: ${promo.path}`
-                                                    );
-                                                    e.currentTarget.src =
-                                                        Produk1;
-                                                    setImageLoaded((prev) => ({
-                                                        ...prev,
-                                                        [promo.id]: true,
-                                                    }));
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="mt-5 flex flex-col gap-4">
-                                            <h3 className="text-xl font-bold text-black md:text-2xl">
-                                                {promo.name}
-                                            </h3>
-                                            <p className="text-base font-medium text-red-950 md:text-xl">
-                                                {promo.description}
-                                            </p>
-                                            <div className="flex justify-between font-bold text-black">
-                                                <p className="text-base line-through md:text-lg">
-                                                    Rp{" "}
-                                                    {Number(
-                                                        promo.price
-                                                    ).toLocaleString()}
-                                                </p>
-                                                <p className="text-base text-red-700 md:text-lg">
-                                                    Rp{" "}
-                                                    {Number(
-                                                        promo.promo.promo_price
-                                                    ).toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <button
-                                                    className="bg-amber-200 text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl"
-                                                    onClick={() =>
-                                                        handleChatAdmin(
-                                                            promo.name
+                        <>
+                            <div
+                                className="promo-swiper-button-next absolute right-5 top-28 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-red-700 hover:bg-red-800"
+                                aria-label="Next promo"
+                            >
+                                <BsArrowRight
+                                    size={25}
+                                    className="text-white"
+                                />
+                            </div>
+                            <Swiper
+                                loop={true}
+                                grabCursor={true}
+                                autoplay={{
+                                    delay: 2500,
+                                    disableOnInteraction: false,
+                                }}
+                                modules={[Autoplay, Navigation]}
+                                spaceBetween={30}
+                                slidesPerView={1}
+                                centeredSlides={true}
+                                navigation={{
+                                    nextEl: ".promo-swiper-button-next",
+                                    prevEl: ".promo-swiper-button-prev",
+                                }}
+                                onSlideChange={(swiper) => {
+                                    setActiveEndTime(
+                                        new Date(
+                                            promos[
+                                                swiper.realIndex
+                                            ].promo.end_date
+                                        ).getTime()
+                                    );
+                                }}
+                                className="w-full max-w-80 md:max-w-96"
+                            >
+                                {promos.map((promo) => (
+                                    <SwiperSlide key={promo.id}>
+                                        <div className="relative z-50 w-full rounded-3xl border-2 border-dashed border-red-950 p-5">
+                                            <div className="relative mx-auto w-24 h-24 md:w-32 md:h-32">
+                                                {!imageLoaded[promo.id] && (
+                                                    <div className="absolute inset-0 bg-gray-300 rounded-3xl overflow-hidden animate-pulse">
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+                                                    </div>
+                                                )}
+                                                <img
+                                                    src={promo.path || Produk1}
+                                                    alt={promo.name}
+                                                    className={`w-full h-full object-cover ${
+                                                        imageLoaded[promo.id]
+                                                            ? "opacity-100"
+                                                            : "opacity-0"
+                                                    }`}
+                                                    onLoad={() =>
+                                                        setImageLoaded(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [promo.id]:
+                                                                    true,
+                                                            })
                                                         )
                                                     }
-                                                    aria-label={`Chat admin about ${promo.name}`}
-                                                >
-                                                    Chat admin
-                                                </button>
-                                                <button
-                                                    className="inline-flex w-fit rounded-lg bg-red-700 p-2 hover:bg-red-800 transition-colors"
-                                                    onClick={() =>
-                                                        handleAddToCart(promo)
-                                                    }
-                                                    aria-label={`Add ${promo.name} to cart`}
-                                                >
-                                                    <BiPlus
-                                                        size={18}
-                                                        className="text-white"
-                                                    />
-                                                    <BiSolidCart
-                                                        size={18}
-                                                        className="text-white"
-                                                    />
-                                                </button>
+                                                    onError={(e) => {
+                                                        console.error(
+                                                            `Error loading image: ${promo.path}`
+                                                        );
+                                                        e.currentTarget.src =
+                                                            Produk1;
+                                                        setImageLoaded(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [promo.id]:
+                                                                    true,
+                                                            })
+                                                        );
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="mt-5 flex flex-col gap-4">
+                                                <h3 className="text-xl font-bold text-black md:text-2xl">
+                                                    {promo.name}
+                                                </h3>
+                                                <p className="text-base font-medium text-red-950 md:text-xl">
+                                                    {promo.description}
+                                                </p>
+                                                <div className="flex justify-between font-bold text-black">
+                                                    <p className="text-base line-through md:text-lg">
+                                                        Rp{" "}
+                                                        {Number(
+                                                            promo.price
+                                                        ).toLocaleString()}
+                                                    </p>
+                                                    <p className="text-base text-red-700 md:text-lg">
+                                                        Rp{" "}
+                                                        {Number(
+                                                            promo.promo
+                                                                .promo_price
+                                                        ).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <button
+                                                        className="bg-amber-200 text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl"
+                                                        onClick={() =>
+                                                            handleChatAdmin(
+                                                                promo.name
+                                                            )
+                                                        }
+                                                        aria-label={`Chat admin about ${promo.name}`}
+                                                    >
+                                                        Chat admin
+                                                    </button>
+                                                    <button
+                                                        className="inline-flex w-fit rounded-lg bg-red-700 p-2 hover:bg-red-800 transition-colors"
+                                                        onClick={() =>
+                                                            handleAddToCart(
+                                                                promo
+                                                            )
+                                                        }
+                                                        aria-label={`Add ${promo.name} to cart`}
+                                                    >
+                                                        <BiPlus
+                                                            size={18}
+                                                            className="text-white"
+                                                        />
+                                                        <BiSolidCart
+                                                            size={18}
+                                                            className="text-white"
+                                                        />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </SwiperSlide>
-                            ))}
-                        </Swiper>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </>
                     )}
                 </div>
             </div>

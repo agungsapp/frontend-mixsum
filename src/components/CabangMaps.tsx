@@ -276,7 +276,10 @@ const CabangMaps: React.FC = () => {
 
     return (
         <div className="p-5 bg-white rounded-2xl">
-            <div className="flex flex-col mb-4">
+            <div
+                style={{ zIndex: 999999 }}
+                className="flex relative flex-col mb-4"
+            >
                 <label
                     htmlFor="branch-select"
                     className="mb-2 text-gray-700 font-semibold"
@@ -301,7 +304,7 @@ const CabangMaps: React.FC = () => {
                     isClearable
                     isSearchable
                     styles={customStyles}
-                    className="text-gray-700"
+                    className="text-gray-700 capitalize"
                 />
             </div>
 

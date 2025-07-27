@@ -1,83 +1,52 @@
-import { FaEnvelope, FaInstagram, FaPhone, FaWhatsapp } from "react-icons/fa"; // Ikon sosial media dan kontak
+import { FaEnvelope, FaInstagram, FaPhone, FaWhatsapp } from "react-icons/fa";
+import LogoMixsum from "../assets/images/logo/mixsum-landscape.png";
 
 const Footer = () => {
     return (
-        <footer className="bg-red-800 py-12 text-white">
+        <footer className="bg-red-800 py-10 text-white">
             <div className="container mx-auto px-6">
-                <div className="flex flex-col justify-between gap-8 md:flex-row">
-                    {/* Bagian 1: Logo/Nama Brand */}
+                <div className="flex flex-col items-center gap-8 md:flex-row md:justify-between">
+                    {/* Bagian 1: Logo dan Deskripsi */}
                     <div className="flex flex-col items-center text-center md:items-start md:text-left">
-                        <h3 className="mb-4 text-2xl font-bold text-white">
-                            Mixsum
-                        </h3>
-                        <p className="text-gray-200">
-                            Dimsum lezat untuk semua, temukan cabang terdekatmu!
+                        <img
+                            src={LogoMixsum}
+                            alt="Mixsum Logo"
+                            className="w-32 mb-4"
+                        />
+                        <p className="text-gray-200 text-sm max-w-xs">
+                            Nikmati dimsum lezat dengan cita rasa istimewa.
+                            Temukan cabang terdekat dan rasakan pengalaman
+                            kuliner terbaik!
                         </p>
                     </div>
 
-                    {/* Bagian 2: Link Navigasi */}
-                    <div className="flex flex-col items-center text-center md:items-start md:text-left">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-200">
-                            Navigasi
-                        </h4>
-                        <ul className="space-y-2">
-                            <li>
-                                <a
-                                    href="/"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
-                                >
-                                    Home
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="/cabang"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
-                                >
-                                    Cabang
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="/produk"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
-                                >
-                                    Produk
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="/kontak"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
-                                >
-                                    Kontak
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Bagian 3: Kontak dan Sosial Media */}
-                    <div className="flex flex-col items-center text-center md:items-start md:text-left">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-200">
+                    {/* Bagian 2: Kontak dan Sosial Media */}
+                    <div className="flex flex-col items-center text-center md:items-end md:text-right">
+                        <h4 className="mb-4 text-lg font-semibold text-gray-100">
                             Hubungi Kami
                         </h4>
-                        <ul className="space-y-2">
-                            <li className="flex items-center gap-2">
-                                <FaEnvelope className="text-gray-300" />
+                        <ul className="space-y-3">
+                            <li className="flex items-center justify-center gap-2 md:justify-end">
+                                <FaEnvelope
+                                    className="text-gray-300"
+                                    size={18}
+                                />
                                 <a
                                     href="mailto:info@mixsum.com"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
+                                    className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
                                 >
                                     info@mixsum.com
                                 </a>
                             </li>
-                            <li className="flex items-center gap-2">
-                                <FaPhone className="text-gray-300" />
+                            <li className="flex items-center justify-center gap-2 md:justify-end">
+                                <FaPhone className="text-gray-300" size={18} />
                                 <a
-                                    href="tel:+6281234567890"
-                                    className="text-gray-300 transition-all duration-200 hover:text-white hover:underline"
+                                    href="https://wa.me/62895417877419"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
                                 >
-                                    +62 812-3456-7890
+                                    +62 895-4178-77419
                                 </a>
                             </li>
                         </ul>
@@ -86,7 +55,8 @@ const Footer = () => {
                                 href="https://instagram.com/mixsum"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-gray-300 transition-all duration-200 hover:text-white"
+                                className="text-gray-300 hover:text-white transition-all duration-200"
+                                aria-label="Instagram Mixsum"
                             >
                                 <FaInstagram size={24} />
                             </a>
@@ -94,7 +64,8 @@ const Footer = () => {
                                 href="https://wa.me/6281234567890"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-gray-300 transition-all duration-200 hover:text-white"
+                                className="text-gray-300 hover:text-white transition-all duration-200"
+                                aria-label="WhatsApp Mixsum"
                             >
                                 <FaWhatsapp size={24} />
                             </a>
@@ -103,9 +74,10 @@ const Footer = () => {
                 </div>
 
                 {/* Copyright */}
-                <div className="mt-8 border-t border-white pt-4 text-center">
-                    <p className="text-gray-300">
-                        © 2025 Mixsum. All rights reserved.
+                <div className="mt-8 border-t border-gray-600 pt-4 text-center">
+                    <p className="text-gray-300 text-sm">
+                        &copy; {new Date().getFullYear()} Mixsum. All rights
+                        reserved.
                     </p>
                 </div>
             </div>

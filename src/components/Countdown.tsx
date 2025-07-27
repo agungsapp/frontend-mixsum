@@ -1,44 +1,68 @@
 import React, { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 interface CountdownProps {
     endTime: number; // Timestamp dalam milidetik
 }
 
 const Countdown: React.FC<CountdownProps> = ({ endTime }) => {
-    const [timeLeft, setTimeLeft] = useState({
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-    });
+    const [timeDisplay, setTimeDisplay] = useState<string[]>([]);
 
     const calculateTimeLeft = useCallback(() => {
-        const now = new Date().getTime();
-        const distance = endTime - now;
+        const now = dayjs();
+        const end = dayjs(endTime);
+        const diff = end.diff(now);
 
-        if (distance < 0) {
-            setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        if (diff <= 0) {
+            setTimeDisplay(["Promo telah berakhir"]);
             return;
         }
 
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
-            (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+            (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
         );
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        setTimeLeft({ hours, minutes, seconds });
+        if (days > 0) {
+            setTimeDisplay([
+                `${days} Hari`,
+                `${hours} Jam`,
+                `${minutes} Menit`,
+                `${seconds} Detik`,
+            ]);
+        } else if (hours > 0) {
+            setTimeDisplay([
+                `${hours} Jam`,
+                `${minutes} Menit`,
+                `${seconds} Detik`,
+            ]);
+        } else {
+            setTimeDisplay([`${minutes} Menit`, `${seconds} Detik`]);
+        }
     }, [endTime]);
 
     useEffect(() => {
-        const interval = setInterval(calculateTimeLeft, 1000);
+        calculateTimeLeft();
+        const interval = setInterval(calculateTimeLeft, 1000); // Update setiap detik
         return () => clearInterval(interval);
     }, [calculateTimeLeft]);
 
+    if (timeDisplay.length === 0) {
+        return null;
+    }
+
     return (
         <div className="flex justify-center gap-3">
-            <button className="cursor-default rounded-2xl text-white bg-red-700 px-5 py-2.5 text-xl font-bold">{`${timeLeft.hours} Jam`}</button>
-            <button className="cursor-default rounded-2xl text-white bg-red-700 px-5 py-2.5 text-xl font-bold">{`${timeLeft.minutes} Menit`}</button>
-            <button className="cursor-default rounded-2xl text-white bg-red-700 px-5 py-2.5 text-xl font-bold">{`${timeLeft.seconds} Detik`}</button>
+            {timeDisplay.map((time, index) => (
+                <button
+                    key={index}
+                    className="cursor-default rounded-2xl text-white bg-red-700 px-5 py-2.5 text-xl font-bold"
+                >
+                    {time}
+                </button>
+            ))}
         </div>
     );
 };

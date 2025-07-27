@@ -405,6 +405,7 @@ const MenuFull = () => {
                             >
                                 <div className="relative z-50 max-w-96 rounded-3xl border-2 border-dashed border-red-950 bg-white p-5">
                                     <div className="relative mx-auto w-32 h-32">
+                                        {/* <h2>oke</h2> */}
                                         {!imageLoaded[product.id] && (
                                             <div className="absolute inset-0 bg-gray-300 rounded animate-pulse">
                                                 <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
@@ -436,7 +437,7 @@ const MenuFull = () => {
                                             }}
                                         />
                                     </div>
-                                    <div className="mt-5 flex flex-col gap-5">
+                                    <div className="mt-10 flex flex-col gap-5">
                                         <h3 className="text-2xl font-bold text-black">
                                             {product.name}
                                         </h3>

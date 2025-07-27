@@ -6,6 +6,8 @@ import Testimoni from "../components/Testimoni";
 import Cabang from "../components/Cabang";
 import "../Waves.css";
 
+import FormTestimoni from "../components/FormTestimoni";
+
 function Home() {
     return (
         <div className="mt-0">
@@ -27,6 +29,9 @@ function Home() {
             </div>
             <div id="testimoni">
                 <Testimoni />
+            </div>
+            <div id="formTestimoni">
+                <FormTestimoni />
             </div>
         </div>
     );

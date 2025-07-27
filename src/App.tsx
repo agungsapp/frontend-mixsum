@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import MenuPage from "./pages/MenuPage";
 import Navbar from "./components/Navbar";
 import ContactPage from "./pages/ContactPage";
+import Footer from "./components/Footer";
 
 function AppContent() {
     const [hasShownModal, setHasShownModal] = useState(false);
@@ -56,6 +57,8 @@ function AppContent() {
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/contact" element={<ContactPage />} />
             </Routes>
+            <Footer />
+
             <FloatingCart />
             <BranchPromptModal
                 isOpen={showBranchModal}
