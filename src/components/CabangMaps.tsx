@@ -18,9 +18,10 @@ interface BranchContact {
 // Definisi tipe untuk data cabang dari API
 interface ApiBranch {
     id: number;
+    address: string;
     name: string;
-    lat: number;
-    long: number; // Sesuaikan dengan struktur API
+    lat: string; // API mengembalikan string
+    long: string; // API mengembalikan string
     branch_contact: BranchContact[];
 }
 
@@ -43,9 +44,16 @@ interface SelectOption {
     label: string;
 }
 
-// Validasi koordinat
-const isValidCoordinate = (coord: number): boolean => {
-    return typeof coord === "number" && !isNaN(coord) && isFinite(coord);
+// Validasi koordinat yang lebih fleksibel
+const isValidCoordinate = (coord: string | number): boolean => {
+    const num = typeof coord === 'string' ? parseFloat(coord) : coord;
+    return !isNaN(num) && isFinite(num) && num !== 0;
+};
+
+// Fungsi untuk mengonversi string koordinat ke number
+const parseCoordinate = (coord: string): number => {
+    const parsed = parseFloat(coord);
+    return isNaN(parsed) ? 0 : parsed;
 };
 
 // Data dummy cabang sebagai fallback
@@ -166,24 +174,32 @@ const CabangMaps: React.FC = () => {
                                     (c) => c.type === "grabfood"
                                 );
 
+                            // Generate alamat yang lebih baik
+                            let generatedAddress = apiBranch.address;
+                            if (!apiBranch.address || apiBranch.address === "kosong") {
+                                generatedAddress = `MixSum ${apiBranch.name.charAt(0).toUpperCase() + apiBranch.name.slice(1)}, Bandar Lampung`;
+                            }
+
                             return {
                                 name: apiBranch.name,
-                                address: `Jl. ${apiBranch.name} No.123, Bandar Lampung`,
-                                lat: apiBranch.lat,
-                                lng: apiBranch.long, // Petakan long ke lng
+                                address: generatedAddress,
+                                lat: parseCoordinate(apiBranch.lat),
+                                lng: parseCoordinate(apiBranch.long), // Petakan long ke lng
                                 whatsapp: whatsappContact
                                     ? whatsappContact.contact
                                     : "6281234567890",
-                                instagram: `https://instagram.com/mixsum_${apiBranch.name.toLowerCase()}`,
+                                instagram: `https://instagram.com/mixsum_${apiBranch.name.toLowerCase().replace(/\s+/g, '')}`,
                                 gofood: gofoodContact
                                     ? gofoodContact.contact
                                     : "https://gofood.link/a/example",
                                 grabfood: grabfoodContact
                                     ? grabfoodContact.contact
                                     : "https://grab.link/a/example",
-                                shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase()}`,
+                                shopeefood: `https://shopee.co.id/mixsum_${apiBranch.name.toLowerCase().replace(/\s+/g, '')}`,
                             };
                         });
+
+                    console.log("Transformed branches:", transformedBranches);
 
                     if (transformedBranches.length > 0) {
                         setBranches(transformedBranches);
@@ -217,7 +233,7 @@ const CabangMaps: React.FC = () => {
         markersRef.current = new Array(branches.length).fill(null);
     }, [branches]);
 
-    // Pusat peta awal
+    // Pusat peta awal - gunakan koordinat Lampung sebagai center
     const center: LatLngExpression = branches.length
         ? [
               branches.reduce((sum, branch) => sum + branch.lat, 0) /
@@ -225,7 +241,7 @@ const CabangMaps: React.FC = () => {
               branches.reduce((sum, branch) => sum + branch.lng, 0) /
                   branches.length,
           ]
-        : [-5.3882406, 105.2525734];
+        : [-5.3882406, 105.2525734]; // Default ke Bandar Lampung
 
     // Validasi pusat peta
     if (!isValidCoordinate(center[0]) || !isValidCoordinate(center[1])) {
@@ -237,7 +253,7 @@ const CabangMaps: React.FC = () => {
     // Opsi untuk react-select
     const options: SelectOption[] = branches.map((branch) => ({
         value: branch,
-        label: branch.name,
+        label: branch.name.charAt(0).toUpperCase() + branch.name.slice(1),
     }));
 
     // Styling kustom untuk react-select
@@ -293,7 +309,7 @@ const CabangMaps: React.FC = () => {
                         selectedBranch
                             ? {
                                   value: selectedBranch,
-                                  label: selectedBranch.name,
+                                  label: selectedBranch.name.charAt(0).toUpperCase() + selectedBranch.name.slice(1),
                               }
                             : null
                     }
@@ -310,7 +326,7 @@ const CabangMaps: React.FC = () => {
 
             <MapContainer
                 center={center}
-                zoom={12.5}
+                zoom={10} // Zoom lebih kecil untuk melihat semua cabang
                 className="w-full h-[60vh]"
                 style={{ height: "60vh" }}
             >
@@ -355,11 +371,7 @@ const CabangMaps: React.FC = () => {
                                 </p>
                                 <div className="flex text-xs flex-wrap gap-2 mb-3">
                                     <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${
-                                            branch.name.toLowerCase() === 'kedaton'
-                                                ? encodeURIComponent('mix kitchen')
-                                                : `mixsum+${encodeURIComponent(branch.name)}`
-                                        }+${branch.lat},${branch.lng}`}
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branch.address)}&center=${branch.lat},${branch.lng}&zoom=16`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 text-blue-500 hover:bg-blue-100 p-2 rounded transition-colors"
@@ -367,9 +379,6 @@ const CabangMaps: React.FC = () => {
                                         <FaMapMarkerAlt size={15} />
                                         Google Maps
                                     </a>
-
-
-
                                     <a
                                         href={branch.instagram}
                                         target="_blank"
@@ -379,24 +388,28 @@ const CabangMaps: React.FC = () => {
                                         <FaInstagram size={15} />
                                         Instagram
                                     </a>
-                                    <a
-                                        href={branch.grabfood}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-green-600 hover:bg-green-100 p-2 rounded transition-colors"
-                                    >
-                                        <SiGrab size={20} />
-                                        GrabFood
-                                    </a>
-                                    <a
-                                        href={branch.gofood}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-red-500 hover:bg-red-100 p-2 rounded transition-colors"
-                                    >
-                                        <SiGojek size={15} />
-                                        GoFood
-                                    </a>
+                                    {branch.grabfood !== "https://grab.link/a/example" && (
+                                        <a
+                                            href={branch.grabfood}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-green-600 hover:bg-green-100 p-2 rounded transition-colors"
+                                        >
+                                            <SiGrab size={20} />
+                                            GrabFood
+                                        </a>
+                                    )}
+                                    {branch.gofood !== "https://gofood.link/a/example" && (
+                                        <a
+                                            href={branch.gofood}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-red-500 hover:bg-red-100 p-2 rounded transition-colors"
+                                        >
+                                            <SiGojek size={15} />
+                                            GoFood
+                                        </a>
+                                    )}
                                     <a
                                         href={branch.shopeefood}
                                         target="_blank"

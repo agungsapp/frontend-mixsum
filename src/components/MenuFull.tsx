@@ -19,6 +19,9 @@ interface ProductItem {
     updated_at: string;
 }
 
+interface ApiResponse<T> {
+    data: T;
+}
 // Komponen skeleton untuk kartu produk
 const ProductCardSkeleton = () => (
     <div className="rounded-3xl bg-white p-2">
@@ -121,7 +124,7 @@ const MenuFull = () => {
 
         const fetchProductTypes = async () => {
             try {
-                const response = await apiClient.get<{ id: number; name: string }[]>("/product-type");
+                const response = await apiClient.get<ApiResponse<{ id: number; name: string }[]>>("/product-type");
                 setProductTypes(response.data.data);
             } catch (error) {
                 console.error("Error fetching product types:", error);
@@ -133,7 +136,6 @@ const MenuFull = () => {
                 ]);
             }
         };
-
         fetchProductTypes();
 
         const fetchProductData = async () => {
