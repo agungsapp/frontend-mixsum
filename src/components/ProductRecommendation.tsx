@@ -18,7 +18,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: number;
+    active: string;
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -92,7 +92,7 @@ const ProductRecommendation = () => {
             description: "isi 5 pcs",
             path: "http://localhost:8000/storage/produk/1.png",
             price: "15000",
-            active: 1,
+            active: "1",
             product_type_id: 1,
             created_at: "2025-05-08T02:32:26.000000Z",
             updated_at: "2025-05-08T02:32:26.000000Z",
@@ -108,7 +108,7 @@ const ProductRecommendation = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === 1 && item.path)
+                        .filter((item) => item.active === "1" && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")

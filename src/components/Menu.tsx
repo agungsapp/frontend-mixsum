@@ -13,7 +13,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: number;
+    active: string;
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -65,7 +65,7 @@ const Menu = () => {
             path: Produk1,
             price: "29000",
             slug: "dimsum-medium-pack",
-            active: 1,
+            active: "1",
             product_type_id: 1,
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -78,7 +78,7 @@ const Menu = () => {
             path: Produk1,
             price: "29000",
             slug: "dimsum-family-pack",
-            active: 1,
+            active: "1",
             product_type_id: 1,
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -91,7 +91,7 @@ const Menu = () => {
             path: Produk1,
             price: "29000",
             slug: "dimsum-special-combo-a",
-            active: 1,
+            active: "1",
             product_type_id: 1,
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -107,7 +107,7 @@ const Menu = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === 1 && item.path)
+                        .filter((item) => item.active === "1" && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")

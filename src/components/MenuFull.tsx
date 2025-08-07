@@ -13,7 +13,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: number;
+    active: string;
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -74,7 +74,7 @@ const MenuFull = () => {
             path: Produk1,
             price: "29000",
             slug: "dimsum-medium-pack",
-            active: 1,
+            active: "1",
             product_type_id: 1, // Paket Regular
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -87,7 +87,7 @@ const MenuFull = () => {
             path: Produk1,
             price: "45000",
             slug: "dimsum-family-pack",
-            active: 1,
+            active: "1",
             product_type_id: 2, // Spesial Pack
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -100,7 +100,7 @@ const MenuFull = () => {
             path: Produk1,
             price: "10000",
             slug: "es-teh-manis",
-            active: 1,
+            active: "1",
             product_type_id: 3, // Minuman
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -113,7 +113,7 @@ const MenuFull = () => {
             path: Produk1,
             price: "100000",
             slug: "catering-pack",
-            active: 1,
+            active: "1",
             product_type_id: 4, // Catering
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
@@ -147,7 +147,7 @@ const MenuFull = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === 1 && item.path)
+                        .filter((item) => item.active === "1" && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
