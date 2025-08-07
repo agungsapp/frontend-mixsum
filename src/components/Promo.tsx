@@ -60,7 +60,7 @@ const PromoCardSkeleton = () => (
 const Promo = () => {
     const [promos, setPromos] = useState<Promo[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
+    const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
     const [activeEndTime, setActiveEndTime] = useState<number>(0);
 
     // Akses CartContext
