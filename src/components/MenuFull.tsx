@@ -147,7 +147,7 @@ const MenuFull = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === "1" && item.path)
+                        .filter((item) => item.active == "1" && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
