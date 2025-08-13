@@ -14,7 +14,7 @@ interface ProductItem {
     path: string;
     price: string;
     active: string;
-    product_type_id: number;
+    product_type_id: string;
     created_at: string;
     updated_at: string;
 }
@@ -66,7 +66,7 @@ const Menu = () => {
             price: "29000",
             slug: "dimsum-medium-pack",
             active: "1",
-            product_type_id: 1,
+            product_type_id: "1",
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -79,7 +79,7 @@ const Menu = () => {
             price: "29000",
             slug: "dimsum-family-pack",
             active: "1",
-            product_type_id: 1,
+            product_type_id: "1",
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -92,7 +92,7 @@ const Menu = () => {
             price: "29000",
             slug: "dimsum-special-combo-a",
             active: "1",
-            product_type_id: 1,
+            product_type_id: "1",
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },

@@ -14,7 +14,7 @@ interface ProductItem {
     path: string;
     price: string;
     active: string;
-    product_type_id: number;
+    product_type_id: string;
     created_at: string;
     updated_at: string;
 }
@@ -75,7 +75,7 @@ const MenuFull = () => {
             price: "29000",
             slug: "dimsum-medium-pack",
             active: "1",
-            product_type_id: 1, // Paket Regular
+            product_type_id: "1", // Paket Regular
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -88,7 +88,7 @@ const MenuFull = () => {
             price: "45000",
             slug: "dimsum-family-pack",
             active: "1",
-            product_type_id: 2, // Spesial Pack
+            product_type_id: "2", // Spesial Pack
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -101,7 +101,7 @@ const MenuFull = () => {
             price: "10000",
             slug: "es-teh-manis",
             active: "1",
-            product_type_id: 3, // Minuman
+            product_type_id: "3", // Minuman
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -114,7 +114,7 @@ const MenuFull = () => {
             price: "100000",
             slug: "catering-pack",
             active: "1",
-            product_type_id: 4, // Catering
+            product_type_id: "4", // Catering
             created_at: "2025-05-07T02:30:13.000000Z",
             updated_at: "2025-05-07T02:30:13.000000Z",
         },
@@ -244,7 +244,7 @@ const MenuFull = () => {
         // Filter berdasarkan tab
         if (activeTab !== "all") {
             filteredProducts = products.filter(
-                (product) => product.product_type_id === Number(activeTab)
+                (product) => product.product_type_id === activeTab
             );
         }
 
