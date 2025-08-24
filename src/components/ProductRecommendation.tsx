@@ -9,6 +9,7 @@ import { apiClient } from "../utils/api";
 import { CartContext } from "../context/CartContext";
 import Swal from "sweetalert2";
 import { Autoplay } from "swiper/modules";
+import { Link } from "react-router-dom";
 
 // Definisikan tipe untuk respons API produk
 interface ProductItem {
@@ -488,12 +489,12 @@ const ProductRecommendation = () => {
                 </div>
 
                 <div className="w-full pb-10">
-                    <a
-                        href="/menu"
+                    <Link
+                        to="/menu"
                         className="mx-auto block w-fit rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800"
                     >
                         Lihat Semua Menu
-                    </a>
+                    </Link>
                 </div>
             </div>
         </section>

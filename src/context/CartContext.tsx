@@ -5,6 +5,9 @@ interface CartItem {
     id: number;
     name: string;
     price: number;
+    discount?: number;
+    end_date?: string;
+    promoId?: number; // Untuk identifikasi promo
     quantity: number;
 }
 
@@ -36,6 +39,7 @@ interface CartContextType {
     setSelectedBranch: (branch: Branch | null) => void;
     showBranchModal: boolean;
     setShowBranchModal: (show: boolean) => void;
+    setCart: React.Dispatch<React.SetStateAction<CartItem[]>>; // Tambahkan setCart
 }
 
 // Buat context dengan default value
@@ -65,13 +69,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             if (existingItem) {
                 const newCart = prevCart.map((i) =>
                     i.id === item.id
-                        ? { ...i, quantity: i.quantity + item.quantity }
+                        ? { ...i, quantity: i.quantity + item.quantity, discount: item.discount ?? 0, end_date: item.end_date, promoId: item.promoId }
                         : i
                 );
                 console.log("Updated cart:", newCart);
                 return newCart;
             }
-            const newCart = [...prevCart, item];
+            const newCart = [...prevCart, { ...item, discount: item.discount ?? 0, end_date: item.end_date, promoId: item.promoId }];
             console.log("Updated cart:", newCart);
             return newCart;
         });
@@ -79,12 +83,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     const removeFromCart = (id: number) => {
         setCart((prevCart) => {
-            console.log(
-                "Removing item with id:",
-                id,
-                "Current cart:",
-                prevCart
-            );
+            console.log("Removing item with id:", id, "Current cart:", prevCart);
             const newCart = prevCart.filter((item) => item.id !== id);
             console.log("Updated cart:", newCart);
             return newCart;
@@ -124,6 +123,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
                 setSelectedBranch,
                 showBranchModal,
                 setShowBranchModal,
+                setCart, // Pastikan setCart disertakan di value
             }}
         >
             {children}

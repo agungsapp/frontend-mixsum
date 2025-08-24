@@ -20,13 +20,11 @@ interface Product {
     price: string;
 }
 
-interface PromoProduct extends Product {
-    role: "required" | "free";
-}
+interface PromoProduct extends Product { }
 
 interface Promo {
     id: number;
-    type: "single" | "bundle_discount" | "bundle_free";
+    type: "single" | "bundling";
     description: string;
     discount_value: string | null;
     start_date: string;
@@ -107,21 +105,19 @@ const Promo = () => {
                             ...promo,
                             product: promo.product
                                 ? {
-                                      ...promo.product,
-                                      path: promo.product.path.startsWith("http")
-                                          ? promo.product.path
-                                          : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${
-                                                promo.product.path.startsWith("/") ? promo.product.path.slice(1) : promo.product.path
-                                            }`,
-                                  }
+                                    ...promo.product,
+                                    path: promo.product.path.startsWith("http")
+                                        ? promo.product.path
+                                        : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${promo.product.path.startsWith("/") ? promo.product.path.slice(1) : promo.product.path
+                                        }`,
+                                }
                                 : null,
                             products: promo.products.map((product) => ({
                                 ...product,
                                 path: product.path.startsWith("http")
                                     ? product.path
-                                    : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${
-                                          product.path.startsWith("/") ? product.path.slice(1) : product.path
-                                      }`,
+                                    : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${product.path.startsWith("/") ? product.path.slice(1) : product.path
+                                    }`,
                             })),
                         }));
 
@@ -145,6 +141,16 @@ const Promo = () => {
         fetchPromos();
     }, []);
 
+    // Fungsi untuk menghitung diskon per item
+    // Fungsi untuk menghitung diskon per item
+    const calculateDiscountPerItem = (promo: Promo): number => {
+        if (promo.discount_value) {
+            const totalProducts = promo.type === "single" ? 1 : promo.products.length;
+            return Number(promo.discount_value) / totalProducts;
+        }
+        return 0;
+    };
+
     // Fungsi untuk menghitung harga promo
     const calculatePromoPrice = (promo: Promo): number => {
         if (promo.type === "single" && promo.product && promo.discount_value) {
@@ -152,17 +158,10 @@ const Promo = () => {
             const discount = Number(promo.discount_value);
             return originalPrice - discount;
         }
-        if (promo.type === "bundle_discount" && promo.discount_value) {
-            const totalPrice = promo.products
-                .filter((p) => p.role === "required")
-                .reduce((sum, p) => sum + Number(p.price), 0);
+        if (promo.type === "bundling" && promo.discount_value) {
+            const totalPrice = promo.products.reduce((sum, p) => sum + Number(p.price), 0);
             const discount = Number(promo.discount_value);
             return totalPrice - discount;
-        }
-        if (promo.type === "bundle_free") {
-            return promo.products
-                .filter((p) => p.role === "required")
-                .reduce((sum, p) => sum + Number(p.price), 0);
         }
         return 0;
     };
@@ -174,34 +173,30 @@ const Promo = () => {
             return;
         }
 
+        const discountPerItem = calculateDiscountPerItem(promo);
+
         if (promo.type === "single" && promo.product) {
             addToCart({
                 id: promo.product.id,
                 name: promo.product.name,
-                price: calculatePromoPrice(promo),
+                price: Number(promo.product.price),
+                discount: discountPerItem,
+                end_date: promo.end_date,
+                promoId: promo.id, // Tambah
                 quantity: 1,
             });
-        } else {
-            const requiredProducts = promo.products.filter((p) => p.role === "required");
-            requiredProducts.forEach((product) => {
+        } else if (promo.type === "bundling") {
+            promo.products.forEach((product) => {
                 addToCart({
                     id: product.id,
                     name: `${product.name} (Promo: ${promo.description})`,
                     price: Number(product.price),
+                    discount: discountPerItem,
+                    end_date: promo.end_date,
+                    promoId: promo.id, // Tambah
                     quantity: 1,
                 });
             });
-            if (promo.type === "bundle_free") {
-                const freeProducts = promo.products.filter((p) => p.role === "free");
-                freeProducts.forEach((product) => {
-                    addToCart({
-                        id: product.id,
-                        name: `${product.name} (Gratis - Promo: ${promo.description})`,
-                        price: 0,
-                        quantity: 1,
-                    });
-                });
-            }
         }
 
         Swal.fire({
@@ -246,22 +241,8 @@ const Promo = () => {
         if (promo.type === "single" && promo.product) {
             return [promo.product.path];
         }
-        if (promo.type === "bundle_discount") {
-            return promo.products
-                .filter((p) => p.role === "required")
-                .slice(0, 2)
-                .map((p) => p.path);
-        }
-        if (promo.type === "bundle_free") {
-            const required = promo.products
-                .filter((p) => p.role === "required")
-                .slice(0, 2)
-                .map((p) => p.path);
-            const free = promo.products
-                .filter((p) => p.role === "free")
-                .slice(0, 1)
-                .map((p) => p.path);
-            return [...required, ...free];
+        if (promo.type === "bundling") {
+            return promo.products.slice(0, 2).map((p) => p.path); // Ambil 2 gambar pertama
         }
         return [Produk1];
     };
@@ -346,105 +327,103 @@ const Promo = () => {
                                     const images = getPromoImages(promo);
                                     return (
                                         <SwiperSlide key={promo.id}>
-    <div className="relative z-50 w-full rounded-3xl border-2 border-dashed border-red-950 p-5">
-        <div className="flex justify-center gap-2 mx-auto">
-            {images.map((path, index) => (
-                <div
-                    key={index}
-                    className="relative w-20 h-20 md:w-24 md:h-24"
-                >
-                    {!imageLoaded[`${promo.id}-${index}`] && (
-                        <div className="absolute inset-0 bg-gray-300 rounded-3xl overflow-hidden animate-pulse">
-                            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
-                        </div>
-                    )}
-                    <img
-                        src={path}
-                        alt={`${promo.description} - product ${index + 1}`}
-                        className={`w-full h-full object-cover rounded-lg ${
-                            imageLoaded[`${promo.id}-${index}`] ? "opacity-100" : "opacity-0"
-                        }`}
-                        onLoad={() =>
-                            setImageLoaded((prev) => ({
-                                ...prev,
-                                [`${promo.id}-${index}`]: true,
-                            }))
-                        }
-                        onError={(e) => {
-                            console.error(`Error loading image: ${path}`);
-                            e.currentTarget.src = Produk1;
-                            setImageLoaded((prev) => ({
-                                ...prev,
-                                [`${promo.id}-${index}`]: true,
-                            }));
-                        }}
-                    />
-                </div>
-            ))}
-        </div>
-        <div className="mt-5 flex flex-col gap-4">
-            <h3 className="text-xl font-bold text-black md:text-2xl text-center">
-                {promo.type === "single" && promo.product
-                    ? promo.product.name
-                    : images
-                          .map((_, index) => {
-                              if (promo.type === "single" && promo.product) return promo.product.name;
-                              const product =
-                                  promo.products.find((p) => p.path === images[index]) ||
-                                  (index === 0 && promo.product);
-                              return product ? product.name : "";
-                          })
-                          .filter((name) => name)
-                          .join(" + ")}
-            </h3>
-            <p className="text-base font-medium text-red-950 md:text-xl text-center">
-                {promo.description}
-            </p>
-            <div className="flex justify-between font-bold text-black">
-                {promo.type === "single" && promo.product ? (
-                    <>
-                        <p className="text-base line-through md:text-lg">
-                            Rp {Number(promo.product.price).toLocaleString()}
-                        </p>
-                        <p className="text-base text-red-700 md:text-lg">
-                            Rp {calculatePromoPrice(promo).toLocaleString()}
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <p className="text-base line-through md:text-lg">
-                            Rp{" "}
-                            {promo.products
-                                .filter((p) => p.role === "required")
-                                .reduce((sum, p) => sum + Number(p.price), 0)
-                                .toLocaleString()}
-                        </p>
-                        <p className="text-base text-red-700 md:text-lg">
-                            Rp {calculatePromoPrice(promo).toLocaleString()}
-                        </p>
-                    </>
-                )}
-            </div>
-            <div className="flex justify-between items-center">
-                <button
-                    className="bg-amber-200 text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl"
-                    onClick={() => handleChatAdmin(promo)}
-                    aria-label={`Chat admin about ${promo.description}`}
-                >
-                    Chat admin
-                </button>
-                <button
-                    className="inline-flex w-fit rounded-lg bg-red-700 p-2 hover:bg-red-800 transition-colors"
-                    onClick={() => handleAddToCart(promo)}
-                    aria-label={`Add promo ${promo.description} to cart`}
-                >
-                    <BiPlus size={18} className="text-white" />
-                    <BiSolidCart size={18} className="text-white" />
-                </button>
-            </div>
-        </div>
-    </div>
-</SwiperSlide>
+                                            <div className="relative z-50 w-full rounded-3xl border-2 border-dashed border-red-950 p-5">
+                                                <div className="flex justify-center gap-2 mx-auto">
+                                                    {images.map((path, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="relative w-20 h-20 md:w-24 md:h-24"
+                                                        >
+                                                            {!imageLoaded[`${promo.id}-${index}`] && (
+                                                                <div className="absolute inset-0 bg-gray-300 rounded-3xl overflow-hidden animate-pulse">
+                                                                    <div className="absolute inset-0 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 bg-[length:200%_100%] animate-shimmer"></div>
+                                                                </div>
+                                                            )}
+                                                            <img
+                                                                src={path}
+                                                                alt={`${promo.description} - product ${index + 1}`}
+                                                                className={`w-full h-full object-cover rounded-lg ${imageLoaded[`${promo.id}-${index}`] ? "opacity-100" : "opacity-0"
+                                                                    }`}
+                                                                onLoad={() =>
+                                                                    setImageLoaded((prev) => ({
+                                                                        ...prev,
+                                                                        [`${promo.id}-${index}`]: true,
+                                                                    }))
+                                                                }
+                                                                onError={(e) => {
+                                                                    console.error(`Error loading image: ${path}`);
+                                                                    e.currentTarget.src = Produk1;
+                                                                    setImageLoaded((prev) => ({
+                                                                        ...prev,
+                                                                        [`${promo.id}-${index}`]: true,
+                                                                    }));
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="mt-5 flex flex-col gap-4">
+                                                    <h3 className="text-xl font-bold text-black md:text-2xl text-center">
+                                                        {promo.type === "single" && promo.product
+                                                            ? promo.product.name
+                                                            : images
+                                                                .map((_, index) => {
+                                                                    if (promo.type === "single" && promo.product) return promo.product.name;
+                                                                    const product =
+                                                                        promo.products.find((p) => p.path === images[index]) ||
+                                                                        (index === 0 && promo.product);
+                                                                    return product ? product.name : "";
+                                                                })
+                                                                .filter((name) => name)
+                                                                .join(" + ")}
+                                                    </h3>
+                                                    <p className="text-base font-medium text-red-950 md:text-xl text-center">
+                                                        {promo.description}
+                                                    </p>
+                                                    <div className="flex justify-between font-bold text-black">
+                                                        {promo.type === "single" && promo.product ? (
+                                                            <>
+                                                                <p className="text-base line-through md:text-lg">
+                                                                    Rp {Number(promo.product.price).toLocaleString()}
+                                                                </p>
+                                                                <p className="text-base text-red-700 md:text-lg">
+                                                                    Rp {calculatePromoPrice(promo).toLocaleString()}
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="text-base line-through md:text-lg">
+                                                                    Rp{" "}
+                                                                    {promo.products
+                                                                        .reduce((sum, p) => sum + Number(p.price), 0)
+                                                                        .toLocaleString()}
+                                                                </p>
+                                                                <p className="text-base text-red-700 md:text-lg">
+                                                                    Rp {calculatePromoPrice(promo).toLocaleString()}
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <button
+                                                            className="bg-amber-200 text-red-600 border border-red-600 font-semibold px-3 py-1 hover:text-white hover:bg-red-600 rounded-2xl"
+                                                            onClick={() => handleChatAdmin(promo)}
+                                                            aria-label={`Chat admin about ${promo.description}`}
+                                                        >
+                                                            Chat admin
+                                                        </button>
+                                                        <button
+                                                            className="inline-flex w-fit rounded-lg bg-red-700 p-2 hover:bg-red-800 transition-colors"
+                                                            onClick={() => handleAddToCart(promo)}
+                                                            aria-label={`Add promo ${promo.description} to cart`}
+                                                        >
+                                                            <BiPlus size={18} className="text-white" />
+                                                            <BiSolidCart size={18} className="text-white" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </SwiperSlide>
                                     );
                                 })}
                             </Swiper>
