@@ -108,31 +108,33 @@ const Promo = () => {
                                     ...promo.product,
                                     path: promo.product.path.startsWith("http")
                                         ? promo.product.path
-                                        : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${promo.product.path.startsWith("/") ? promo.product.path.slice(1) : promo.product.path
-                                        }`,
+                                        : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${promo.product.path.startsWith("/") ? promo.product.path.slice(1) : promo.product.path}`,
                                 }
                                 : null,
                             products: promo.products.map((product) => ({
                                 ...product,
                                 path: product.path.startsWith("http")
                                     ? product.path
-                                    : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${product.path.startsWith("/") ? product.path.slice(1) : product.path
-                                    }`,
+                                    : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${product.path.startsWith("/") ? product.path.slice(1) : product.path}`,
                             })),
                         }));
 
                     setPromos(validPromos);
                     if (validPromos.length > 0) {
                         setActiveEndTime(new Date(validPromos[0].end_date).getTime());
+                        // Simpan ke localStorage
+                        localStorage.setItem("activePromos", JSON.stringify(validPromos));
                     }
                 } else {
                     console.log("No active promos found, hiding section");
                     setPromos([]);
+                    localStorage.removeItem("activePromos"); // Hapus jika tidak ada promo
                 }
             } catch (error) {
                 console.error("Error fetching promo data:", error);
                 setPromos(dummyPromos);
                 setActiveEndTime(new Date(dummyPromos[0].end_date).getTime());
+                localStorage.setItem("activePromos", JSON.stringify(dummyPromos)); // Simpan dummy sebagai fallback
             } finally {
                 setIsLoading(false);
             }

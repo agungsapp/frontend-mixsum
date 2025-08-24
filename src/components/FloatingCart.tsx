@@ -1,9 +1,8 @@
-import { useContext, useState, useEffect, Component } from "react";
+import { useContext, useState, useEffect, Component, useRef, useCallback } from "react";
 import { CartContext } from "../context/CartContext";
 import { HiShoppingCart, HiX } from "react-icons/hi";
 import { apiClient } from "../utils/api";
 import Swal from "sweetalert2";
-import Promo from "./Promo";
 
 // Error Boundary dengan tipe props yang benar
 interface ErrorBoundaryProps {
@@ -54,6 +53,33 @@ interface Branch {
     branch_contact: BranchContact[];
 }
 
+// Definisikan tipe Promo (sesuai dengan Promo.tsx)
+interface Promo {
+    id: number;
+    type: "single" | "bundling";
+    description: string;
+    discount_value: string | null;
+    start_date: string;
+    end_date: string;
+    status: string;
+    product: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string;
+        path: string;
+        price: string;
+    } | null;
+    products: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string;
+        path: string;
+        price: string;
+    }[];
+}
+
 // Komponen skeleton untuk daftar cabang
 const BranchListSkeleton = () => (
     <ul className="divide-y divide-gray-200 max-h-64 overflow-y-auto">
@@ -74,6 +100,9 @@ const FloatingCart = () => {
     const [isLoadingBranches, setIsLoadingBranches] = useState(true);
     const [activePromos, setActivePromos] = useState<Promo[]>([]);
 
+    // Use useRef to store mount status
+    const isMountedRef = useRef(true);
+
     // Ambil nilai dari CartContext
     const context = useContext(CartContext);
     if (!context) {
@@ -81,7 +110,7 @@ const FloatingCart = () => {
     }
     const { cart, removeFromCart, selectedBranch, setSelectedBranch, setCart } = context;
 
-    // Data dummy cabang sebagai konstanta
+    // Data dummy cabang
     const dummyBranches: Branch[] = [
         {
             id: 1,
@@ -99,81 +128,136 @@ const FloatingCart = () => {
                 { id: 24, branch_id: 1, type: "gofood", contact: "https://gofood.link/a/yMa5Qvs" },
             ],
         },
-        // ... (sisa dummyBranches)
     ];
 
-    // Fetch data cabang
-    useEffect(() => {
-        const fetchBranches = async () => {
-            setIsLoadingBranches(true);
-            try {
-                const response = await apiClient.get<Branch[]>("/branch");
-                if (Array.isArray(response.data) && response.data.length > 0) {
-                    setBranches(response.data);
-                } else {
-                    setBranches(dummyBranches);
-                }
-            } catch (error) {
-                console.error("Error fetching branch data:", error);
+    // Function untuk fetch branches
+    const fetchBranches = useCallback(async () => {
+        if (!isMountedRef.current) return;
+
+        setIsLoadingBranches(true);
+        try {
+            console.log("Fetching branches...");
+            const response = await apiClient.get<Branch[]>("/branch");
+
+            if (!isMountedRef.current) return;
+
+            if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                console.log("Branches loaded:", response.data);
+                setBranches(response.data);
+            } else {
+                console.log("No branches found, using dummy data");
                 setBranches(dummyBranches);
-            } finally {
+            }
+        } catch (error) {
+            console.error("Error fetching branches:", error);
+            if (isMountedRef.current) {
+                setBranches(dummyBranches);
+            }
+        } finally {
+            if (isMountedRef.current) {
                 setIsLoadingBranches(false);
             }
-        };
-        fetchBranches();
-    }, [dummyBranches]); // Tambahkan dummyBranches ke dependency
-
-    // Fetch promo aktif saat keranjang dibuka dan polling
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-        if (isCartOpen) {
-            const fetchActivePromos = async () => {
-                try {
-                    const response = await apiClient.get<Promo[]>("/promo");
-                    const active = response.data.filter((p) => p.status === "Active");
-                    console.log("Active Promos:", active);
-                    setActivePromos(active);
-                } catch (error) {
-                    console.error("Error fetching active promos:", error);
-                }
-            };
-            fetchActivePromos();
-            intervalId = setInterval(fetchActivePromos, 30000);
         }
-        return () => clearInterval(intervalId);
+    }, []);
+
+    // Fetch data cabang hanya sekali saat component mount
+    useEffect(() => {
+        fetchBranches();
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [fetchBranches]);
+
+    // Effect untuk fetch promos dan validasi saat cart dibuka
+    useEffect(() => {
+        if (isCartOpen) {
+            console.log("Cart opened, reading active promos from localStorage...");
+            const storedPromos = localStorage.getItem("activePromos");
+            if (storedPromos) {
+                const parsedPromos: Promo[] = JSON.parse(storedPromos);
+                setActivePromos(parsedPromos);
+                console.log("Active Promos from localStorage:", parsedPromos);
+            } else {
+                console.log("No promos found in localStorage, setting empty array");
+                setActivePromos([]);
+            }
+        } else {
+            console.log("Cart closed, resetting active promos");
+            setActivePromos([]); // Reset saat ditutup
+        }
+
+        // Cleanup saat unmount
+        return () => {
+            isMountedRef.current = false;
+        };
     }, [isCartOpen]);
 
-    // Validasi dan hapus expired promo
+    // Effect untuk validasi promo expired
+    // Effect untuk validasi promo expired
     useEffect(() => {
-        if (activePromos.length > 0 && cart.length > 0 && setCart) {
-            const now = new Date();
-            const newCart = cart.filter((item) => {
-                if (item.promoId) {
-                    const promo = activePromos.find((p) => p.id === item.promoId);
-                    if (!promo || new Date(promo.end_date) < now) {
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Promo Expired",
-                            text: `${item.name} telah dihapus karena promo expired.`,
-                            timer: 2000,
-                            showConfirmButton: false,
-                        });
-                        return false;
-                    }
-                    if (promo.end_date !== item.end_date) {
-                        item.end_date = promo.end_date;
-                    }
-                }
-                return true;
-            });
-            if (newCart.length !== cart.length) {
-                setCart(newCart);
-            }
+        if (!isCartOpen || cart.length === 0 || !setCart) {
+            return;
         }
-    }, [activePromos, cart, setCart]);
+
+        console.log("Validating expired promos...", { activePromos, cart });
+
+        const now = new Date();
+        let hasExpiredItems = false;
+
+        const validatedCart = cart.filter((item) => {
+            if (!item.promoId) {
+                return true; // Biarkan item non-promo
+            }
+
+            // Jika activePromos kosong (tidak ada di localStorage), hapus semua item dengan promoId
+            if (activePromos.length === 0) {
+                hasExpiredItems = true;
+                console.log(`Removing promo item (no active promos): ${item.name}`);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Promo Tidak Tersedia",
+                    text: `${item.name} telah dihapus karena tidak ada promo aktif.`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                return false;
+            }
+
+            // Jika activePromos ada, periksa kecocokan promo dan expired
+            const promo = activePromos.find((p) => p.id === item.promoId);
+            if (!promo || new Date(promo.end_date) < now) {
+                hasExpiredItems = true;
+                console.log(`Removing expired promo item: ${item.name}`);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Promo Expired",
+                    text: `${item.name} telah dihapus karena promo expired.`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                return false;
+            }
+
+            if (promo.end_date !== item.end_date) {
+                item.end_date = promo.end_date;
+            }
+
+            return true;
+        });
+
+        if (hasExpiredItems || validatedCart.length !== cart.length) {
+            console.log("Updating cart after validation", {
+                before: cart.length,
+                after: validatedCart.length,
+            });
+            setCart(validatedCart);
+        }
+    }, [activePromos, cart, setCart, isCartOpen]);
 
     // Fungsi untuk membuka/tutup pop-up keranjang
     const toggleCart = () => {
+        console.log("Toggling cart, current state:", isCartOpen);
         setIsCartOpen(!isCartOpen);
         if (isBranchModalOpen) setIsBranchModalOpen(false);
     };
@@ -279,12 +363,23 @@ const FloatingCart = () => {
                                     <ul className="divide-y divide-gray-200 max-h-64 overflow-y-auto">
                                         {cart.map((item) => (
                                             <li key={item.id} className="py-2 flex justify-between items-center">
-                                                <span className="text-gray-700 text-sm">
-                                                    {item.name} (x{item.quantity}) - Rp{(item.price * item.quantity).toLocaleString()}
-                                                </span>
+                                                <div className="flex-1">
+                                                    <span className="text-gray-700 text-sm">
+                                                        {item.name} (x{item.quantity})
+                                                    </span>
+                                                    <br />
+                                                    <span className="text-gray-600 text-xs">
+                                                        Rp{(item.price * item.quantity).toLocaleString()}
+                                                        {item.discount && item.discount > 0 && (
+                                                            <span className="text-red-500 ml-1">
+                                                                (Diskon: Rp{(item.discount * item.quantity).toLocaleString()})
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
                                                 <button
                                                     onClick={() => removeFromCart(item.id)}
-                                                    className="text-red-500 hover:text-red-700 text-sm"
+                                                    className="text-red-500 hover:text-red-700 text-sm ml-2"
                                                     aria-label={`Remove ${item.name} from cart`}
                                                 >
                                                     Hapus
@@ -297,11 +392,11 @@ const FloatingCart = () => {
                                             Total: Rp
                                             {cart.reduce((total, item) => total + item.price * item.quantity, 0).toLocaleString()}
                                         </p>
-                                        <p className="text-gray-700 font-bold">
+                                        <p className="text-gray-700 font-bold text-red-500">
                                             Diskon: Rp
                                             {cart.reduce((total, item) => total + (item.discount || 0) * item.quantity, 0).toLocaleString()}
                                         </p>
-                                        <p className="text-gray-700 font-bold">
+                                        <p className="text-gray-700 font-bold text-green-600">
                                             Total Bayar: Rp
                                             {cart.reduce((total, item) => total + (item.price - (item.discount || 0)) * item.quantity, 0).toLocaleString()}
                                         </p>

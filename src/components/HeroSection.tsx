@@ -8,7 +8,7 @@ interface CarouselItem {
     keterangan: string;
     path: string;
     urutan: number;
-    active: string;
+    active: number;
     created_at: string;
     updated_at: string;
 }
@@ -37,7 +37,7 @@ const HeroSection: React.FC = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validSlides = response.data
-                        .filter((item) => item.active === "1" && item.path)
+                        .filter((item) => item.active === 1 && item.path)
                         .sort((a, b) => a.urutan - b.urutan)
                         .map((item) => {
                             // Pastikan path lengkap
@@ -105,9 +105,8 @@ const HeroSection: React.FC = () => {
             {slides.map((slide, index) => (
                 <div
                     key={index}
-                    className={`absolute inset-0 transition-opacity duration-300 ${
-                        index === currentSlide ? "opacity-100" : "opacity-0"
-                    }`}
+                    className={`absolute inset-0 transition-opacity duration-300 ${index === currentSlide ? "opacity-100" : "opacity-0"
+                        }`}
                 >
                     <img
                         src={slide}

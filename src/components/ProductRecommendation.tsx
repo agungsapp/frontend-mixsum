@@ -19,7 +19,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: string;
+    active: number;
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -109,15 +109,15 @@ const ProductRecommendation = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === "1" && item.path)
+                        .filter((item) => item.active === 1 && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
                                 ? item.path
                                 : `${import.meta.env.VITE_API_BASE_URL?.replace(
-                                      /\/api\/?$/,
-                                      ""
-                                  )}/${item.path.replace(/^\//, "")}`,
+                                    /\/api\/?$/,
+                                    ""
+                                )}/${item.path.replace(/^\//, "")}`,
                         }));
 
                     console.log("Processed products:", validProducts);
@@ -336,11 +336,10 @@ const ProductRecommendation = () => {
                                 className="px-5 md:px-8 py-16"
                             >
                                 <div
-                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${
-                                        index === activeIndex
+                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${index === activeIndex
                                             ? "bg-white"
                                             : "bg-transparent"
-                                    }`}
+                                        }`}
                                     onClick={() => handleSlideClick(index)}
                                 >
                                     <div className="mb-1 flex items-center justify-between md:mb-4">
@@ -365,11 +364,10 @@ const ProductRecommendation = () => {
                                                     "/placeholder.svg"
                                                 }
                                                 alt={product.name}
-                                                className={`h-full w-full object-cover ${
-                                                    imageLoaded[product.id]
+                                                className={`h-full w-full object-cover ${imageLoaded[product.id]
                                                         ? "opacity-100"
                                                         : "opacity-0"
-                                                }`}
+                                                    }`}
                                                 onLoad={() =>
                                                     setImageLoaded((prev) => ({
                                                         ...prev,
@@ -412,11 +410,10 @@ const ProductRecommendation = () => {
                                                     "/placeholder.svg"
                                                 }
                                                 alt={product.name}
-                                                className={`h-full w-full object-cover ${
-                                                    imageLoaded[product.id]
+                                                className={`h-full w-full object-cover ${imageLoaded[product.id]
                                                         ? "opacity-100"
                                                         : "opacity-0"
-                                                }`}
+                                                    }`}
                                                 onLoad={() =>
                                                     setImageLoaded((prev) => ({
                                                         ...prev,

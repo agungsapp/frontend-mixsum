@@ -26,7 +26,7 @@ const Footer = () => {
                             Hubungi Kami
                         </h4>
                         <ul className="space-y-3">
-                            <li className="flex items-center justify-center gap-2 md:justify-end">
+                            {/* <li className="flex items-center justify-center gap-2 md:justify-end">
                                 <FaEnvelope
                                     className="text-gray-300"
                                     size={18}
@@ -37,7 +37,7 @@ const Footer = () => {
                                 >
                                     info@mixsum.com
                                 </a>
-                            </li>
+                            </li> */}
                             <li className="flex items-center justify-center gap-2 md:justify-end">
                                 <FaPhone className="text-gray-300" size={18} />
                                 <a
@@ -46,13 +46,13 @@ const Footer = () => {
                                     rel="noopener noreferrer"
                                     className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
                                 >
-                                    +62 895-4178-77419
+                                    0895 4178 77419
                                 </a>
                             </li>
                         </ul>
                         <div className="mt-4 flex gap-4">
                             <a
-                                href="https://instagram.com/mixsum"
+                                href="https://instagram.com/mixsumdimsum"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-300 hover:text-white transition-all duration-200"
@@ -61,7 +61,7 @@ const Footer = () => {
                                 <FaInstagram size={24} />
                             </a>
                             <a
-                                href="https://wa.me/6281234567890"
+                                href="https://wa.me/62895417877419"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-300 hover:text-white transition-all duration-200"

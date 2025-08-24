@@ -283,7 +283,7 @@ const Testimoni = () => {
 
                 <p className="mt-5 text-center text-xl font-bold text-black">
                     📢 Mau jadi bagian dari tim{" "}
-                    <span className="text-red-700">#DimsumLover?</span> Yuk,
+                    <span className="text-red-700">#Mixsumers?</span> Yuk,
                     cobain sekarang! 🚀
                 </p>
             </div>

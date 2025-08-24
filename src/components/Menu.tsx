@@ -14,7 +14,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: string;
+    active: number;
     product_type_id: string;
     created_at: string;
     updated_at: string;
@@ -108,15 +108,15 @@ const Menu = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === "1" && item.path)
+                        .filter((item) => item.active === 1 && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
                                 ? item.path
                                 : `${import.meta.env.VITE_API_BASE_URL?.replace(
-                                      /\/api\/?$/,
-                                      ""
-                                  )}/${item.path.replace(/^\//, "")}`,
+                                    /\/api\/?$/,
+                                    ""
+                                )}/${item.path.replace(/^\//, "")}`,
                         }))
                         .slice(0, 3);
 
@@ -277,11 +277,10 @@ const Menu = () => {
                                     <img
                                         src={product.path || Produk1}
                                         alt={product.name}
-                                        className={`w-full h-full object-cover ${
-                                            imageLoaded[product.id]
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                        }`}
+                                        className={`w-full h-full object-cover ${imageLoaded[product.id]
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                            }`}
                                         onLoad={() =>
                                             setImageLoaded((prev) => ({
                                                 ...prev,
@@ -352,7 +351,7 @@ const Menu = () => {
                     <Link
                         to="/menu"
                         className="rounded-2xl bg-red-700 px-6 py-3 font-bold text-white transition-colors hover:bg-red-800"
-                        >
+                    >
                         Lihat Semua Menu
                     </Link>
                 </div>
