@@ -8,7 +8,7 @@ interface CarouselItem {
     keterangan: string;
     path: string;
     urutan: number;
-    active: number;
+    active: number | string;
     created_at: string;
     updated_at: string;
 }
@@ -37,7 +37,7 @@ const HeroSection: React.FC = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validSlides = response.data
-                        .filter((item) => item.active === 1 && item.path)
+                        .filter((item) => item.active == 1 && item.path)
                         .sort((a, b) => a.urutan - b.urutan)
                         .map((item) => {
                             // Pastikan path lengkap
@@ -52,7 +52,6 @@ const HeroSection: React.FC = () => {
                                 )}/${item.path.replace(/^\//, "")}`;
                             }
                         });
-
                     console.log("Processed slides:", validSlides);
 
                     if (validSlides.length > 0) {

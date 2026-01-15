@@ -19,7 +19,7 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: number;
+    active: number | string;
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -109,7 +109,7 @@ const ProductRecommendation = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-                        .filter((item) => item.active === 1 && item.path)
+                        .filter((item) => item.active == "1" && item.path)
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
@@ -336,7 +336,8 @@ const ProductRecommendation = () => {
                                 className="px-5 md:px-8 py-16"
                             >
                                 <div
-                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${index === activeIndex
+                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${
+                                        index === activeIndex
                                             ? "bg-white"
                                             : "bg-transparent"
                                         }`}
@@ -410,10 +411,11 @@ const ProductRecommendation = () => {
                                                     "/placeholder.svg"
                                                 }
                                                 alt={product.name}
-                                                className={`h-full w-full object-cover ${imageLoaded[product.id]
+                                                className={`h-full w-full object-cover ${
+                                                    imageLoaded[product.id]
                                                         ? "opacity-100"
                                                         : "opacity-0"
-                                                    }`}
+                                                }`}
                                                 onLoad={() =>
                                                     setImageLoaded((prev) => ({
                                                         ...prev,

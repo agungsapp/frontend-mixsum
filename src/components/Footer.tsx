@@ -1,4 +1,4 @@
-import { FaEnvelope, FaInstagram, FaPhone, FaWhatsapp } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import LogoMixsum from "../assets/images/logo/mixsum-landscape.png";
 
 const Footer = () => {
@@ -26,50 +26,47 @@ const Footer = () => {
                             Hubungi Kami
                         </h4>
                         <ul className="space-y-3">
-                            {/* <li className="flex items-center justify-center gap-2 md:justify-end">
-                                <FaEnvelope
+                            <li className="flex items-center justify-center gap-2 md:justify-end">
+                                <FaInstagram
                                     className="text-gray-300"
                                     size={18}
                                 />
                                 <a
-                                    href="mailto:info@mixsum.com"
+                                    href="https://instagram.com/mixsumdimsum"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
                                 >
-                                    info@mixsum.com
+                                    @mixsumdimsum
                                 </a>
-                            </li> */}
+                            </li>
                             <li className="flex items-center justify-center gap-2 md:justify-end">
-                                <FaPhone className="text-gray-300" size={18} />
+                                <FaInstagram
+                                    className="text-gray-300"
+                                    size={18}
+                                />
+                                <a
+                                    href="https://instagram.com/mixsumdimsum_plg"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
+                                >
+                                    @mixsumdimsum_plg
+                                </a>
+                            </li>
+                            <li className="flex items-center justify-center gap-2 md:justify-end">
+                                <FaWhatsapp className="text-gray-300" size={18} />
                                 <a
                                     href="https://wa.me/62895417877419"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-gray-300 text-sm hover:text-white transition-all duration-200 hover:underline"
                                 >
-                                    0895 4178 77419
+                                    +62 895-4178-77419
                                 </a>
                             </li>
                         </ul>
-                        <div className="mt-4 flex gap-4">
-                            <a
-                                href="https://instagram.com/mixsumdimsum"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-300 hover:text-white transition-all duration-200"
-                                aria-label="Instagram Mixsum"
-                            >
-                                <FaInstagram size={24} />
-                            </a>
-                            <a
-                                href="https://wa.me/62895417877419"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-300 hover:text-white transition-all duration-200"
-                                aria-label="WhatsApp Mixsum"
-                            >
-                                <FaWhatsapp size={24} />
-                            </a>
-                        </div>
+
                     </div>
                 </div>
 
