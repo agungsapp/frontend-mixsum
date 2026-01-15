@@ -18,7 +18,15 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
+<<<<<<< Updated upstream
     active: string;
+=======
+<<<<<<< Updated upstream
+    active: number;
+=======
+    active: number | string;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     product_type_id: number;
     created_at: string;
     updated_at: string;
@@ -108,7 +116,15 @@ const ProductRecommendation = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
+<<<<<<< Updated upstream
                         .filter((item) => item.active === "1" && item.path)
+=======
+<<<<<<< Updated upstream
+                        .filter((item) => item.active === 1 && item.path)
+=======
+                        .filter((item) => item.active == "1" && item.path)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
@@ -335,11 +351,23 @@ const ProductRecommendation = () => {
                                 className="px-5 md:px-8 py-16"
                             >
                                 <div
+<<<<<<< Updated upstream
                                     className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${
                                         index === activeIndex
                                             ? "bg-white"
                                             : "bg-transparent"
                                     }`}
+=======
+                                    className={`rounded-2xl p-6 shadow-2xl transition-transform duration-300 ${index === activeIndex
+<<<<<<< Updated upstream
+                                            ? "bg-white"
+                                            : "bg-transparent"
+=======
+                                        ? "bg-white"
+                                        : "bg-transparent"
+>>>>>>> Stashed changes
+                                        }`}
+>>>>>>> Stashed changes
                                     onClick={() => handleSlideClick(index)}
                                 >
                                     <div className="mb-1 flex items-center justify-between md:mb-4">
@@ -364,11 +392,23 @@ const ProductRecommendation = () => {
                                                     "/placeholder.svg"
                                                 }
                                                 alt={product.name}
+<<<<<<< Updated upstream
                                                 className={`h-full w-full object-cover ${
                                                     imageLoaded[product.id]
                                                         ? "opacity-100"
                                                         : "opacity-0"
                                                 }`}
+=======
+                                                className={`h-full w-full object-cover ${imageLoaded[product.id]
+<<<<<<< Updated upstream
+                                                        ? "opacity-100"
+                                                        : "opacity-0"
+=======
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+>>>>>>> Stashed changes
+                                                    }`}
+>>>>>>> Stashed changes
                                                 onLoad={() =>
                                                     setImageLoaded((prev) => ({
                                                         ...prev,
@@ -411,11 +451,23 @@ const ProductRecommendation = () => {
                                                     "/placeholder.svg"
                                                 }
                                                 alt={product.name}
+<<<<<<< Updated upstream
                                                 className={`h-full w-full object-cover ${
                                                     imageLoaded[product.id]
                                                         ? "opacity-100"
                                                         : "opacity-0"
                                                 }`}
+=======
+                                                className={`h-full w-full object-cover ${imageLoaded[product.id]
+<<<<<<< Updated upstream
+                                                        ? "opacity-100"
+                                                        : "opacity-0"
+=======
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+>>>>>>> Stashed changes
+                                                    }`}
+>>>>>>> Stashed changes
                                                 onLoad={() =>
                                                     setImageLoaded((prev) => ({
                                                         ...prev,

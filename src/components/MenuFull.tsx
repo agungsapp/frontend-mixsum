@@ -13,8 +13,8 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
-    active: string;
-    product_type_id: string;
+    active: number | string;
+    product_type_id: number | string;
     created_at: string;
     updated_at: string;
 }
@@ -153,9 +153,9 @@ const MenuFull = () => {
                             path: item.path.startsWith("http")
                                 ? item.path
                                 : `${import.meta.env.VITE_API_BASE_URL?.replace(
-                                      /\/api\/?$/,
-                                      ""
-                                  )}/${item.path.replace(/^\//, "")}`,
+                                    /\/api\/?$/,
+                                    ""
+                                )}/${item.path.replace(/^\//, "")}`,
                         }));
 
                     console.log("Processed products:", validProducts);
@@ -244,7 +244,7 @@ const MenuFull = () => {
         // Filter berdasarkan tab
         if (activeTab !== "all") {
             filteredProducts = products.filter(
-                (product) => product.product_type_id === activeTab
+                (product) => product.product_type_id == activeTab
             );
         }
 
@@ -354,13 +354,12 @@ const MenuFull = () => {
                         />
                     </div>
 
-                   <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap">
                         <button
-                            className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                                activeTab === "all"
-                                    ? "bg-red-700 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
+                            className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${activeTab === "all"
+                                ? "bg-red-700 text-white"
+                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}
                             onClick={() => setActiveTab("all")}
                         >
                             Semua
@@ -368,11 +367,10 @@ const MenuFull = () => {
                         {productTypes.map((type) => (
                             <button
                                 key={type.id}
-                                className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                                    activeTab === type.id.toString()
-                                        ? "bg-red-700 text-white"
-                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                }`}
+                                className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${activeTab == type.id.toString()
+                                    ? "bg-red-700 text-white"
+                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    }`}
                                 onClick={() => setActiveTab(type.id.toString())}
                             >
                                 {type.name}
@@ -438,11 +436,10 @@ const MenuFull = () => {
                                         <img
                                             src={product.path || Produk1}
                                             alt={product.name}
-                                            className={`w-full mb-2 object-cover ${
-                                                imageLoaded[product.id]
-                                                    ? "opacity-100"
-                                                    : "opacity-0"
-                                            }`}
+                                            className={`w-full mb-2 object-cover ${imageLoaded[product.id]
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                                }`}
                                             onLoad={() =>
                                                 setImageLoaded((prev) => ({
                                                     ...prev,

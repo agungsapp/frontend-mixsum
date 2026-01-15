@@ -132,8 +132,20 @@ const Testimoni = () => {
                     "/testimoni"
                 );
                 console.log("Testimoni API Response:", response.data);
+
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    setTestimonials(response.data);
+                    const processedTestimonials = response.data.map((item) => ({
+                        ...item,
+                        path: item.path?.startsWith("http")
+                            ? item.path
+                            : `${import.meta.env.VITE_API_BASE_URL?.replace(
+                                /\/api\/?$/,
+                                ""
+                            )}/${item.path?.replace(/^\//, "") || ""}`,
+                    }));
+
+                    console.log("Processed testimonials:", processedTestimonials);
+                    setTestimonials(processedTestimonials);
                 } else {
                     console.log(
                         "Empty testimoni API response, using dummy data"
@@ -237,10 +249,10 @@ const Testimoni = () => {
                                                     src={`${testimonial.path}`}
                                                     className="h-16 w-16 rounded-full object-cover"
                                                     alt={`Profile of ${testimonial.name}`}
-                                                    onError={(e) => {
-                                                        e.currentTarget.src =
-                                                            "/fallback-profile.jpg";
-                                                    }}
+                                                // onError={(e) => {
+                                                //     e.currentTarget.src =
+                                                //         "/fallback-profile.jpg";
+                                                // }}
                                                 />
                                                 <div>
                                                     <p className="text-xl font-bold text-black">

@@ -260,7 +260,7 @@ const BranchPromptModal = ({ isOpen, onClose }: BranchPromptModalProps) => {
                 </button>
             </div>
         </div>
-    ); 
+    );
 };
 
 export default BranchPromptModal;

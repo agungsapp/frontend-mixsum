@@ -8,7 +8,15 @@ interface CarouselItem {
     keterangan: string;
     path: string;
     urutan: number;
+<<<<<<< Updated upstream
     active: string;
+=======
+<<<<<<< Updated upstream
+    active: number;
+=======
+    active: number | string;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     created_at: string;
     updated_at: string;
 }
@@ -37,7 +45,15 @@ const HeroSection: React.FC = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validSlides = response.data
+<<<<<<< Updated upstream
                         .filter((item) => item.active === "1" && item.path)
+=======
+<<<<<<< Updated upstream
+                        .filter((item) => item.active === 1 && item.path)
+=======
+                        .filter((item) => item.active == 1 && item.path)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
                         .sort((a, b) => a.urutan - b.urutan)
                         .map((item) => {
                             // Pastikan path lengkap
@@ -52,7 +68,6 @@ const HeroSection: React.FC = () => {
                                 )}/${item.path.replace(/^\//, "")}`;
                             }
                         });
-
                     console.log("Processed slides:", validSlides);
 
                     if (validSlides.length > 0) {

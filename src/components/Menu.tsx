@@ -13,7 +13,15 @@ interface ProductItem {
     description: string;
     path: string;
     price: string;
+<<<<<<< Updated upstream
     active: string;
+=======
+<<<<<<< Updated upstream
+    active: number;
+=======
+    active: number | string;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     product_type_id: string;
     created_at: string;
     updated_at: string;
@@ -107,7 +115,15 @@ const Menu = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
+<<<<<<< Updated upstream
                         .filter((item) => item.active === "1" && item.path)
+=======
+<<<<<<< Updated upstream
+                        .filter((item) => item.active === 1 && item.path)
+=======
+                        .filter((item) => item.active == "1" && item.path)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
