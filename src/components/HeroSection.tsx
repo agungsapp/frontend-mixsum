@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { apiClient } from "../utils/api";
 import DefaultHero from "../assets/images/momoyo1.png";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Definisikan tipe untuk respons API
 interface CarouselItem {
@@ -76,7 +77,7 @@ const HeroSection: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Atur interval untuk pergantian slide setiap 500ms
+    // Atur interval untuk pergantian slide setiap 3000ms
     useEffect(() => {
         if (slides.length <= 1) {
             console.log("Only one slide available, no transition needed.");
@@ -86,10 +87,22 @@ const HeroSection: React.FC = () => {
         console.log(`Carousel initialized with ${slides.length} slides`);
         const interval = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 3000); // Interval 500ms
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [slides.length]);
+
+    const goToPrevious = () => {
+        setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    };
+
+    const goToNext = () => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+    };
+
+    const goToSlide = (index: number) => {
+        setCurrentSlide(index);
+    };
 
     if (isLoading) {
         return (
@@ -100,7 +113,7 @@ const HeroSection: React.FC = () => {
     }
 
     return (
-        <div className="hero-section relative h-[20vh] w-full overflow-hidden md:h-[600px]">
+        <div className="hero-section relative h-[20vh] w-full overflow-hidden md:h-[600px] group">
             {slides.map((slide, index) => (
                 <div
                     key={index}
@@ -118,6 +131,43 @@ const HeroSection: React.FC = () => {
                     />
                 </div>
             ))}
+
+            {/* Navigation Arrows - Glass Effect */}
+            {slides.length > 1 && (
+                <>
+                    <button
+                        onClick={goToPrevious}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100 border border-white/30"
+                        aria-label="Previous slide"
+                    >
+                        <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    </button>
+                    <button
+                        onClick={goToNext}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md p-2 md:p-3 rounded-full hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100 border border-white/30"
+                        aria-label="Next slide"
+                    >
+                        <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    </button>
+                </>
+            )}
+
+            {/* Dots Indicator - Glass Effect */}
+            {slides.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+                    {slides.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => goToSlide(index)}
+                            className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${index === currentSlide
+                                ? "bg-white w-6 md:w-8"
+                                : "bg-white/50 hover:bg-white/75"
+                                }`}
+                            aria-label={`Go to slide ${index + 1}`}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

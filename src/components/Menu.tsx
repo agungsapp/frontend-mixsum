@@ -108,19 +108,7 @@ const Menu = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validProducts = response.data
-<<<<<<< HEAD
-                        .filter((item) => item.active === 1 && item.path)
-=======
-<<<<<<< Updated upstream
-                        .filter((item) => item.active === "1" && item.path)
-=======
-<<<<<<< Updated upstream
-                        .filter((item) => item.active === 1 && item.path)
-=======
                         .filter((item) => item.active == "1" && item.path)
->>>>>>> Stashed changes
->>>>>>> Stashed changes
->>>>>>> 4a5976c54a78b0db304c451d9512146b976369b2
                         .map((item) => ({
                             ...item,
                             path: item.path.startsWith("http")
