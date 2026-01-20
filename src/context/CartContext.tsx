@@ -1,5 +1,20 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 
+
+// Definisikan tipe untuk item keranjang
+interface CartItem {
+    id: number;
+    name: string;
+    price: number;
+    discount?: number;
+    end_date?: string;
+    promoId?: number; // Untuk identifikasi promo
+    quantity: number;
+}
+
+// Tambahkan tipe untuk callback konfirmasi
+type ConfirmCallback = (items: CartItem[], onConfirm: () => void) => void;
+
 // Definisikan tipe untuk item keranjang
 interface CartItem {
     id: number;
@@ -32,14 +47,14 @@ interface Branch {
 interface CartContextType {
     cart: CartItem[];
     addToCart: (item: CartItem) => void;
-    removeFromCart: (id: number) => void;
+    removeFromCart: (id: number, confirmCallback?: ConfirmCallback) => void; // Tambah parameter
     updateQuantity: (id: number, quantity: number) => void;
     clearCart: () => void;
     selectedBranch: Branch | null;
     setSelectedBranch: (branch: Branch | null) => void;
     showBranchModal: boolean;
     setShowBranchModal: (show: boolean) => void;
-    setCart: React.Dispatch<React.SetStateAction<CartItem[]>>; // Tambahkan setCart
+    setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
 }
 
 // Buat context dengan default value
@@ -81,9 +96,48 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         });
     };
 
-    const removeFromCart = (id: number) => {
-        setCart((prevCart) => {
-            console.log("Removing item with id:", id, "Current cart:", prevCart);
+    const removeFromCart = (id: number, confirmCallback?: ConfirmCallback) => {
+        const itemToRemove = cart.find(item => item.id === id);
+
+        if (!itemToRemove) {
+            console.log("Item not found");
+            return;
+        }
+
+        // Jika item adalah bagian dari promo bundling
+        if (itemToRemove.promoId) {
+            const bundlingItems = cart.filter(item => item.promoId === itemToRemove.promoId);
+
+            // Jika ada lebih dari 1 item dalam bundling
+            if (bundlingItems.length > 1) {
+                // Jika ada callback konfirmasi, jalankan
+                if (confirmCallback) {
+                    confirmCallback(bundlingItems, () => {
+                        // Hapus semua item dengan promoId yang sama
+                        console.log("Removing all bundling items:", bundlingItems);
+                        setCart(prevCart => {
+                            const newCart = prevCart.filter(item => item.promoId !== itemToRemove.promoId);
+                            console.log("Updated cart:", newCart);
+                            return newCart;
+                        });
+                    });
+                    return; // ✅ Langsung return, jangan lanjut
+                } else {
+                    // Tidak ada callback, hapus semua langsung
+                    console.log("Removing all bundling items:", bundlingItems);
+                    setCart(prevCart => {
+                        const newCart = prevCart.filter(item => item.promoId !== itemToRemove.promoId);
+                        console.log("Updated cart:", newCart);
+                        return newCart;
+                    });
+                    return; // ✅ Langsung return
+                }
+            }
+        }
+
+        // Item biasa atau bundling dengan 1 item saja, hapus langsung
+        console.log("Removing item with id:", id, "Current cart:", cart);
+        setCart(prevCart => {
             const newCart = prevCart.filter((item) => item.id !== id);
             console.log("Updated cart:", newCart);
             return newCart;

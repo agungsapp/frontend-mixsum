@@ -98,7 +98,7 @@ const FloatingCart = () => {
     const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [isLoadingBranches, setIsLoadingBranches] = useState(true);
-    const [activePromos, setActivePromos] = useState<Promo[]>([]);
+    const [_activePromos, setActivePromos] = useState<Promo[]>([]);
 
     // Use useRef to store mount status
     const isMountedRef = useRef(true);
@@ -169,38 +169,40 @@ const FloatingCart = () => {
         };
     }, [fetchBranches]);
 
-    // Effect untuk fetch promos dan validasi saat cart dibuka
+    // Effect untuk fetch promos DAN validasi saat cart dibuka
     useEffect(() => {
-        if (isCartOpen) {
-            console.log("Cart opened, reading active promos from localStorage...");
+        if (!isCartOpen) {
+            console.log("Cart closed, resetting active promos");
+            setActivePromos([]);
+            return;
+        }
+
+        // Jika cart kosong, tidak perlu validasi
+        if (cart.length === 0) {
+            console.log("Cart empty, reading active promos from localStorage...");
             const storedPromos = localStorage.getItem("activePromos");
             if (storedPromos) {
                 const parsedPromos: Promo[] = JSON.parse(storedPromos);
                 setActivePromos(parsedPromos);
-                console.log("Active Promos from localStorage:", parsedPromos);
             } else {
-                console.log("No promos found in localStorage, setting empty array");
                 setActivePromos([]);
             }
-        } else {
-            console.log("Cart closed, resetting active promos");
-            setActivePromos([]); // Reset saat ditutup
-        }
-
-        // Cleanup saat unmount
-        return () => {
-            isMountedRef.current = false;
-        };
-    }, [isCartOpen]);
-
-    // Effect untuk validasi promo expired
-    // Effect untuk validasi promo expired
-    useEffect(() => {
-        if (!isCartOpen || cart.length === 0 || !setCart) {
             return;
         }
 
-        console.log("Validating expired promos...", { activePromos, cart });
+        // Ada item di cart, load promo dan langsung validasi
+        console.log("Cart opened with items, reading active promos from localStorage...");
+        const storedPromos = localStorage.getItem("activePromos");
+        console.log(['debug stored promos di float', JSON.parse(storedPromos || '[]')]);
+
+        const parsedPromos: Promo[] = storedPromos ? JSON.parse(storedPromos) : [];
+        setActivePromos(parsedPromos);
+        console.log("Active Promos from localStorage:", parsedPromos);
+
+        // Validasi promo expired
+        if (!setCart) return;
+
+        console.log("Validating expired promos...", { parsedPromos, cart });
 
         const now = new Date();
         let hasExpiredItems = false;
@@ -210,10 +212,10 @@ const FloatingCart = () => {
                 return true; // Biarkan item non-promo
             }
 
-            // Jika activePromos kosong (tidak ada di localStorage), hapus semua item dengan promoId
-            if (activePromos.length === 0) {
+            // Jika tidak ada promo aktif, hapus semua item dengan promoId
+            if (parsedPromos.length === 0) {
+                console.log(["Item removed: no active promos", item.name]);
                 hasExpiredItems = true;
-                console.log(`Removing promo item (no active promos): ${item.name}`);
                 Swal.fire({
                     icon: "warning",
                     title: "Promo Tidak Tersedia",
@@ -224,8 +226,8 @@ const FloatingCart = () => {
                 return false;
             }
 
-            // Jika activePromos ada, periksa kecocokan promo dan expired
-            const promo = activePromos.find((p) => p.id === item.promoId);
+            // Periksa kecocokan promo dan expired
+            const promo = parsedPromos.find((p) => p.id === item.promoId);
             if (!promo || new Date(promo.end_date) < now) {
                 hasExpiredItems = true;
                 console.log(`Removing expired promo item: ${item.name}`);
@@ -253,7 +255,7 @@ const FloatingCart = () => {
             });
             setCart(validatedCart);
         }
-    }, [activePromos, cart, setCart, isCartOpen]);
+    }, [isCartOpen, cart, setCart]);
 
     // Fungsi untuk membuka/tutup pop-up keranjang
     const toggleCart = () => {
@@ -315,6 +317,45 @@ const FloatingCart = () => {
         setIsCartOpen(false);
     };
 
+
+    // Fungsi untuk handle remove dengan konfirmasi bundling
+    const handleRemoveFromCart = (itemId: number) => {
+        removeFromCart(itemId, (bundlingItems, onConfirm) => {
+            // Tampilkan konfirmasi dengan SweetAlert
+            Swal.fire({
+                title: 'Hapus Paket Bundling?',
+                html: `
+                <p class="text-sm text-gray-700 mb-2">Produk ini adalah bagian dari paket bundling:</p>
+                <ul class="text-left text-sm text-gray-600 mb-2 list-disc pl-5">
+                    ${bundlingItems.map(item => `<li>${item.name}</li>`).join('')}
+                </ul>
+                <p class="text-sm text-red-600 font-semibold mt-3">Menghapus 1 produk akan menghapus seluruh paket bundling!</p>
+            `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus Semua',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'text-left'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    onConfirm(); // Jalankan callback untuk hapus
+
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: 'Paket bundling telah dihapus dari keranjang.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+    };
+
     return (
         <ErrorBoundary>
             <>
@@ -370,15 +411,20 @@ const FloatingCart = () => {
                                                     <br />
                                                     <span className="text-gray-600 text-xs">
                                                         Rp{(item.price * item.quantity).toLocaleString()}
-                                                        {item.discount && item.discount > 0 && (
+                                                        {/* {item.discount && item.discount > 0 && (
                                                             <span className="text-red-500 ml-1">
                                                                 (Diskon: Rp{(item.discount * item.quantity).toLocaleString()})
+                                                            </span>
+                                                        )} */}
+                                                        {item.promoId && (
+                                                            <span className="text-xs text-green-600 ml-1">
+                                                                ✓ Promo
                                                             </span>
                                                         )}
                                                     </span>
                                                 </div>
                                                 <button
-                                                    onClick={() => removeFromCart(item.id)}
+                                                    onClick={() => handleRemoveFromCart(item.id)}
                                                     className="text-red-500 hover:text-red-700 text-sm ml-2"
                                                     aria-label={`Remove ${item.name} from cart`}
                                                 >

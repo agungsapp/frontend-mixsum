@@ -100,7 +100,7 @@ const Promo = () => {
 
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     const validPromos = response.data
-                        .filter((promo) => promo.status === "Active")
+                        .filter((promo) => promo.status == "Active")
                         .map((promo) => ({
                             ...promo,
                             product: promo.product
@@ -118,6 +118,10 @@ const Promo = () => {
                                     : `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "")}/${product.path.startsWith("/") ? product.path.slice(1) : product.path}`,
                             })),
                         }));
+
+                    console.log(["debug  active promo", validPromos[0].status === "Active"]);
+                    console.log(["debug  get item", localStorage.getItem("activePromos")]);
+
 
                     setPromos(validPromos);
                     if (validPromos.length > 0) {
